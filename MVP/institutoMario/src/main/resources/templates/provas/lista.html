@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="index :: head">
+    <meta charset="UTF-8">
+    <title th:text="Hackathon - Provas"></title>
+</head>
+<body>
+<div th:replace="index :: sidebar"></div>
+
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Provas</h1>
+        <a th:href="@{/provas/nova}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Cadastrar Prova
+        </a>
+    </div>
+
+    <table class="table table-hover table-bordered bg-white">
+        <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Data</th>
+            <th>Disciplina</th>
+            <th>Professor</th>
+            <th>Questões</th>
+            <th>Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="prova : ${provas}">
+            <td th:text="${prova.id}">#</td>
+            <td th:text="${#temporals.format(prova.data, 'dd/MM/yyyy')}">20/06/2025</td>
+            <td th:text="${prova.disciplina.nome}">Disciplina</td>
+            <td th:text="${prova.disciplina.professor.usuario.nome}">Professor</td>
+            <td>
+                <a th:href="@{'/questoes/prova/' + ${prova.id} + '/cadastrar'}" class="btn btn-sm btn-primary me-1" title="Cadastrar questão">
+                    <i class="bi bi-plus-circle"></i>
+                </a>
+            </td>
+            <td>
+                <a th:href="@{'/provas/editar/' + ${prova.id}}" class="btn btn-sm btn-warning me-1">
+                    <i class="bi bi-pencil-fill"></i>
+                </a>
+                <a th:href="@{'/provas/deletar/' + ${prova.id}}"
+                   class="btn btn-sm btn-danger"
+                   onclick="return confirm('Tem certeza que deseja excluir esta prova?');">
+                    <i class="bi bi-trash-fill"></i>
+                </a>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(provas)}">
+            <td colspan="4" class="text-center">Nenhuma prova cadastrada.</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

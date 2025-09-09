@@ -1,0 +1,53 @@
+/* Layout Login */
+.login-body {
+    background: linear-gradient(135deg, #f5f9ff, #ffffff);
+}
+.login-container {
+    height: 100vh;
+}
+.login-logo {
+    max-width: 220px;
+}
+.login-box {
+    max-width: 400px;
+    width: 100%;
+}
+.info-card {
+    border-left: 4px solid #004aad;
+}
+
+/* Sidebar */
+.sidebar {
+    height: 100vh;
+    width: 260px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #004aad;
+    color: white;
+    padding-top: 20px;
+}
+.sidebar-logo {
+    max-width: 180px;
+    margin: auto;
+}
+.sidebar a {
+    padding: 12px 20px;
+    display: block;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background 0.2s;
+}
+.sidebar a:hover {
+    background-color: #003080;
+}
+.sidebar a i {
+    margin-right: 8px;
+}
+
+/* Conteúdo principal */
+.main-content {
+    margin-left: 260px;
+    padding: 30px;
+}

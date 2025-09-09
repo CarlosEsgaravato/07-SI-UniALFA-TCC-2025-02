@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="index :: head">
+  <meta charset="UTF-8">
+  <title>Notas por Disciplina</title>
+</head>
+<body>
+<div th:replace="index :: sidebar"></div>
+
+<div class="main-content">
+  <h1 class="mb-4">Notas por Disciplina</h1>
+
+  <div th:each="agrupamento : ${notasAgrupadas}" class="mb-5">
+    <h3 th:text="${agrupamento.nomeDisciplina}" class="mb-3 text-primary">Disciplina</h3>
+
+    <table class="table table-hover table-bordered bg-white">
+      <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Aluno</th>
+        <th>Data de Aplicação</th>
+        <th>Nota</th>
+        <th>Status</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="nota, iterStat : ${agrupamento.notas}">
+        <td th:text="${iterStat.index + 1}">1</td>
+        <td th:text="${nota.alunoNome}">Aluno</td>
+        <td th:text="${#temporals.format(nota.data, 'dd/MM/yyyy')}">Data de Aplicação</td>
+        <td th:text="${nota.notaTotal}">9.0</td>
+        <td>
+                    <span th:if="${nota.notaTotal >= 7}"
+                          class="text-success fw-bold">Acima da média</span>
+          <span th:if="${nota.notaTotal < 7}"
+                class="text-danger fw-bold">Abaixo da média</span>
+        </td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(agrupamento.notas)}">
+        <td colspan="5" class="text-center">Nenhuma nota registrada.</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

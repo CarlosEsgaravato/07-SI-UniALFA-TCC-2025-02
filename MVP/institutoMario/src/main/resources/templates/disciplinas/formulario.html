@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="index :: head">
+    <meta charset="UTF-8">
+    <title th:text="Hackathon - Disciplinas"></title>
+</head>
+<body>
+
+<div th:replace="index :: sidebar"></div>
+
+<div class="main-content">
+    <h2 th:text="${disciplina.id != null} ? 'Editar Disciplina' : 'Nova Disciplina'">Nova Disciplina</h2>
+
+    <form th:action="@{/disciplinas/salvar}" th:object="${disciplina}" method="post" class="mt-4">
+        <input type="hidden" th:field="*{id}"/>
+
+        <div class="mb-3">
+            <label class="form-label" for="nome">Nome da Disciplina</label>
+            <input class="form-control" id="nome" th:field="*{nome}" required/>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="turma">Turma</label>
+            <select class="form-select" id="turma" th:field="*{turma.id}" required>
+                <option disabled selected value="0" >Selecione...</option>
+                <option th:each="turma : ${turmas}"
+                        th:value="${turma.id}"
+                        th:text="${turma.nome}"></option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="professor">Professor</label>
+            <select class="form-select" id="professor" th:field="*{professor.id}" required>
+                <option disabled selected value="0" >Selecione...</option>
+                <option th:each="prof : ${professores}"
+                        th:value="${prof.id}"
+                        th:text="${prof.usuario.nome}"></option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Salvar</button>
+        <a th:href="@{/disciplinas}" class="btn btn-secondary ms-2">Cancelar</a>
+    </form>
+</div>
+
+</body>
+</html>

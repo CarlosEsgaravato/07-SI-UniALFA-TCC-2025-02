@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="index :: head">
+    <meta charset="UTF-8">
+    <title th:text="Hackathon - Questões"></title>
+</head>
+<body>
+
+<div th:replace="index :: sidebar"></div>
+
+<div class="main-content">
+    <h2 th:text="${prova.id != null} ? 'Editar Prova' : 'Nova Prova'">Nova Prova</h2>
+
+    <form th:action="@{/provas/salvar}" th:object="${prova}" method="post" class="mt-4">
+        <input type="hidden" th:field="*{id}"/>
+
+        <div class="mb-3">
+            <label class="form-label" for="data">Data</label>
+            <input class="form-control" id="data" name="data" type="date"
+                   th:value="${prova.data != null ? #temporals.format(prova.data, 'yyyy-MM-dd') : ''}" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="disciplina">Disciplina</label>
+            <select class="form-select" id="disciplina" th:field="*{disciplina.id}" required>
+                <option disabled selected value="0" >Selecione...</option>
+                <option th:each="disciplina : ${disciplinas}"
+                        th:value="${disciplina.id}"
+                        th:text="${disciplina.nome}"></option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Salvar</button>
+        <a th:href="@{/provas}" class="btn btn-secondary ms-2">Cancelar</a>
+    </form>
+</div>
+
+</body>
+</html>
