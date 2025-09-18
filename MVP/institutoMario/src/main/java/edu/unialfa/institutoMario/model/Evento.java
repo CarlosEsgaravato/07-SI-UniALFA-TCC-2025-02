@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Entity
 @Data
-public class Eventos {
+public class Evento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -24,7 +24,7 @@ public class Eventos {
 
     private String local;
 
-    private String observacão;
+    private String observacao;
 
     private String imagemUrl;
 }
