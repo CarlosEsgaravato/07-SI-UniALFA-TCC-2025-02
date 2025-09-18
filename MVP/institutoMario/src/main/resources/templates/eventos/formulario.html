@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index :: head}">
+  <title>Cadastro de Evento</title>
+</head>
+<body>
+
+<div th:replace="~{index :: sidebar}"></div>
+
+<div class="main-content">
+  <h2 th:text="${evento.id == null} ? 'Novo Evento' : 'Editar Evento'"></h2>
+
+  <form th:action="@{/eventos/salvar}" th:object="${evento}" method="post" class="mt-4">
+    <input type="hidden" th:field="*{id}"/>
+
+    <div class="row">
+      <div class="col-md-8 mb-3">
+        <label class="form-label" for="nomeEvento">Nome do Evento</label>
+        <input class="form-control" id="nomeEvento" th:field="*{nomeEvento}" required/>
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label" for="data">Data</label>
+        <input type="date" class="form-control" id="data" th:field="*{data}" required
+               th:readonly="${evento.id != null ? false : true}"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label" for="local">Local</label>
+        <input class="form-control" id="local" th:field="*{local}"/>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label" for="turma">Turma (Opcional)</label>
+        <select class="form-select" id="turma" th:field="*{turma.id}">
+          <option selected value="">Geral (Nenhuma turma)</option>
+          <option th:each="t : ${turmas}"
+                  th:value="${t.id}"
+                  th:text="${t.nome}"></option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="observacao">Observação</label>
+      <textarea class="form-control" id="observacao" th:field="*{observacao}" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Salvar</button>
+    <a th:href="@{/eventos}" class="btn btn-secondary ms-2">Cancelar</a>
+  </form>
+</div>
+
+</body>
+</html>
