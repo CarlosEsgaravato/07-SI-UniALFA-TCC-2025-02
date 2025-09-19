@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -15,7 +16,7 @@ public class EventoDto {
     private Long id;
     private String nomeEvento;
     private Long idTurma;
-    private LocalDate data;
+    private LocalDateTime data;
     private String local;
     private String observacao;
     private String imagemUrl;

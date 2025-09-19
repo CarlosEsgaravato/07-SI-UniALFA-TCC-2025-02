@@ -21,7 +21,6 @@
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/turmas}"><i class="bi bi-people-fill"></i> Turmas</a>
     <a th:href="@{/disciplinas}"><i class="bi bi-journal-bookmark-fill"></i> Disciplinas</a>
     <a th:href="@{/eventos}"><i class="bi bi-calendar-event-fill"></i> Eventos</a> <a sec:authorize="hasAnyRole('ADMIN', 'PROFESSOR')" th:href="@{/provas}"><i class="bi bi-journal"></i> Provas</a>
-    <a sec:authorize="hasAnyRole('ADMIN', 'PROFESSOR')" th:href="@{/provas}"><i class="bi bi-journal"></i> Provas</a>
     <a sec:authorize="hasAnyRole('ALUNO', 'PROFESSOR')" th:href="@{/notas}"><i class="bi bi-card-checklist"></i> Notas</a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/usuarios}"><i class="bi bi-person-badge-fill"></i> Usuários</a>
     <a th:href="@{/logout}" class="text-danger fw-semibold"><i class="bi bi-box-arrow-right"></i> Sair</a>

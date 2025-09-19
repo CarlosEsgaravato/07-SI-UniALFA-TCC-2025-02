@@ -10,8 +10,9 @@
 <div class="main-content">
   <h2 th:text="${evento.id == null} ? 'Novo Evento' : 'Editar Evento'"></h2>
 
-  <form th:action="@{/eventos/salvar}" th:object="${evento}" method="post" class="mt-4">
+  <form th:action="@{/eventos/salvar}" th:object="${evento}" method="post" enctype="multipart/form-data" class="mt-4" onsubmit="return validarData();">
     <input type="hidden" th:field="*{id}"/>
+    <input type="hidden" th:field="*{imagemUrl}"/>
 
     <div class="row">
       <div class="col-md-8 mb-3">
@@ -19,12 +20,11 @@
         <input class="form-control" id="nomeEvento" th:field="*{nomeEvento}" required/>
       </div>
       <div class="col-md-4 mb-3">
-        <label class="form-label" for="data">Data</label>
-        <input type="date" class="form-control" id="data" th:field="*{data}" required
-               th:readonly="${evento.id != null ? false : true}"/>
+        <label class="form-label" for="data">Data e Hora</label>
+        <input type="datetime-local" class="form-control" id="data" name="data"
+               th:value="${evento.data != null ? #temporals.format(evento.data, 'yyyy-MM-dd''T''HH:mm') : ''}" required />
       </div>
     </div>
-
     <div class="row">
       <div class="col-md-6 mb-3">
         <label class="form-label" for="local">Local</label>
@@ -32,24 +32,44 @@
       </div>
       <div class="col-md-6 mb-3">
         <label class="form-label" for="turma">Turma (Opcional)</label>
-        <select class="form-select" id="turma" th:field="*{turma.id}">
-          <option selected value="">Geral (Nenhuma turma)</option>
-          <option th:each="t : ${turmas}"
-                  th:value="${t.id}"
-                  th:text="${t.nome}"></option>
-        </select>
+        <select class="form-select" id="turma" th:field="*{turma.id}"><option selected value="">Geral</option><option th:each="t : ${turmas}" th:value="${t.id}" th:text="${t.nome}"></option></select>
       </div>
     </div>
-
     <div class="mb-3">
       <label class="form-label" for="observacao">Observação</label>
       <textarea class="form-control" id="observacao" th:field="*{observacao}" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="imagemFile" class="form-label">Imagem do Evento</label>
+      <input class="form-control" type="file" id="imagemFile" name="imagemFile" accept="image/png, image/jpeg, image/jpg">
+    </div>
+
+    <div class="mb-3" th:if="${evento.id != null and evento.imagemUrl != null}">
+      <label class="form-label">Imagem Atual:</label><br>
+      <img th:src="@{/uploads/{filename}(filename=${evento.imagemUrl})}" alt="Imagem do Evento" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
     </div>
 
     <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Salvar</button>
     <a th:href="@{/eventos}" class="btn btn-secondary ms-2">Cancelar</a>
   </form>
 </div>
+
+<script>
+  function validarData() {
+      const campoData = document.getElementById('data');
+      if (!campoData.value) {
+          return true; // Deixa a validação de 'required' do HTML cuidar disso
+      }
+      const dataSelecionada = new Date(campoData.value);
+      const agora = new Date();
+      agora.setSeconds(0, 0);
+      if (dataSelecionada < agora) {
+          return confirm('A data e hora do evento estão no passado. Deseja realmente salvar?');
+      }
+      return true;
+  }
+</script>
 
 </body>
 </html>
