@@ -1,110 +1,100 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<head th:replace="~{index :: head}">
-</head>
+<head th:replace="~{index :: head}"></head>
 
 <body>
 
 <div th:replace="~{index :: sidebar}"></div>
 
 <div class="main-content">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Calendário de Eventos</h2>
-    <div sec:authorize="hasRole('ADMIN')">
-            <span class="badge bg-info-subtle text-info-emphasis rounded-pill p-2">
-                <i class="bi bi-info-circle me-1"></i>
-                Clique em um dia para adicionar um novo evento.
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Calendário de Eventos</h2>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-info-subtle text-info-emphasis rounded-pill p-2 me-3" sec:authorize="hasRole('ADMIN')">
+                <i class="bi bi-info-circle me-1"></i> Clique em um dia para adicionar um novo evento.
             </span>
+            <a class="btn btn-primary" th:href="@{/eventos/novo}" sec:authorize="hasRole('ADMIN')">
+                <i class="bi bi-plus-circle"></i> Novo Evento
+            </a>
+        </div>
     </div>
-  </div>
-
-  <div id='calendar'></div>
+    <div id='calendar'></div>
 </div>
 
-
 <script th:src="@{/js/fullcalendar.min.js}"></script>
-
 <script th:inline="javascript">
-  /*<![CDATA[*/
-  document.addEventListener('DOMContentLoaded', function() {
-      const calendarEl = document.getElementById('calendar');
-      const isAdmin = /*[[${#authorization.expression('hasRole(''ADMIN'')')}]]*/ false;
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const isAdmin = /*[[${#authorization.expression('hasRole(''ADMIN'')')}]]*/ false;
 
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'dayGridMonth',
-          locale: 'pt-br',
-          headerToolbar: {
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,timeGridWeek'
-          },
-          buttonText: {
-              today: 'Hoje',
-              month: 'Mês',
-              week: 'Semana'
-          },
-          events: '/eventos/dados-calendario',
-          eventDataTransform: function(eventData) {
-              return {
-                  id: eventData.id,
-                  title: eventData.nomeEvento,
-                  start: eventData.data,
-                  extendedProps: {
-                      local: eventData.local,
-                      observacao: eventData.observacao
-                  }
-              };
-          },
-          dateClick: function(info) {
-              if (isAdmin) {
-                  window.location.href = `/eventos/novo?data=${info.dateStr}`;
-              }
-          },
-          eventContent: function(arg) {
-              let eventTitle = arg.event.title;
-              let eventHtml = `<div class="fc-event-main-frame"><div class="fc-event-title-container"><div class="fc-event-title fc-sticky">${eventTitle}</div></div></div>`;
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'pt-br',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek'
+            },
+            buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana' },
+            events: '/eventos/dados-calendario',
+            eventDataTransform: function(eventData) {
+                return {
+                    id: eventData.id,
+                    title: eventData.nomeEvento,
+                    start: eventData.data,
+                    extendedProps: {
+                        local: eventData.local,
+                        observacao: eventData.observacao
+                    }
+                };
+            },
+            dateClick: function(info) {
+                if (isAdmin) {
+                    window.location.href = `/eventos/novo?data=${info.dateStr}`;
+                }
+            },
+            eventDidMount: function(info) {
+                if (isAdmin) {
+                    const eventId = info.event.id;
+                    const editUrl = `/eventos/editar/${eventId}`;
+                    const deleteUrl = `/eventos/deletar/${eventId}`;
+                    const confirmMsg = 'Deseja realmente excluir este evento?';
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.className = 'fc-event-buttons';
+                    buttonContainer.innerHTML = `
+                        <a href="${editUrl}" class="btn btn-warning btn-sm py-0 px-1" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                        <a href="${deleteUrl}" class="btn btn-danger btn-sm py-0 px-1" title="Excluir" onclick="return confirm('${confirmMsg}');"><i class="bi bi-trash-fill"></i></a>
+                    `;
+                    info.el.appendChild(buttonContainer);
+                }
+            }
+        });
 
-              if (isAdmin) {
-                  const eventId = arg.event.id;
-                  const editUrl = `/eventos/editar/${eventId}`;
-                  const deleteUrl = `/eventos/deletar/${eventId}`;
-                  const confirmMsg = 'Deseja realmente excluir este evento?';
-
-                  const buttonsHtml = `
-                      <div class="fc-event-buttons">
-                          <a href="${editUrl}" class="btn btn-warning btn-sm py-0 px-1" title="Editar"><i class="bi bi-pencil-square"></i></a>
-                          <a href="${deleteUrl}" class="btn btn-danger btn-sm py-0 px-1" title="Excluir" onclick="return confirm('${confirmMsg}');"><i class="bi bi-trash-fill"></i></a>
-                      </div>
-                  `;
-                  eventHtml += buttonsHtml;
-              }
-              return { html: eventHtml };
-          }
-      });
-
-      calendar.render();
-  });
-  /*]]>*/
+        calendar.render();
+    });
+    /*]]>*/
 </script>
 
 <style>
-  .fc-event-buttons {
-      text-align: right;
-      position: absolute;
-      bottom: 2px;
-      right: 4px;
-      opacity: 0.8;
-  }
-  .fc-event-buttons a {
-      color: white !important;
-  }
-  .fc-daygrid-event:hover .fc-event-buttons {
-      opacity: 1;
-  }
-  .fc-daygrid-event {
-      padding-bottom: 28px !important;
-  }
+    .fc-event-buttons {
+        text-align: right;
+        position: absolute;
+        bottom: 2px;
+        right: 4px;
+        opacity: 0.8;
+    }
+    .fc-event-buttons a {
+        color: white !important;
+    }
+    .fc-daygrid-event:hover .fc-event-buttons {
+        opacity: 1;
+    }
+    .fc-daygrid-event {
+        position: relative;
+        padding-bottom: 28px !important;
+    }
 </style>
 
 </body>
