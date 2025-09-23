@@ -24,4 +24,9 @@ public class Turma {
     @OneToMany(mappedBy = "turma")
     @JsonBackReference
     private List<Aluno> alunos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "turma")
+    @JsonBackReference("projeto-turma")
+    private List<Projetos> projetos;
 }
+
