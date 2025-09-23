@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index :: head}">
+    <meta charset="UTF-8">
+    <title th:text="${projeto.id == null} ? 'Cadastrar Projeto' : 'Editar Projeto'"></title>
+</head>
+<body>
+<div th:replace="~{index :: sidebar}"></div>
+
+<div class="main-content">
+    <div class="container">
+        <h2 class="mb-4" th:text="${projeto.id == null} ? 'Cadastrar Projeto' : 'Editar Projeto'"></h2>
+
+        <form th:action="@{/projetos/salvar}" th:object="${projeto}" method="post" enctype="multipart/form-data" class="row g-3">
+            <input type="hidden" th:field="*{id}"/>
+
+            <div class="col-md-6">
+                <label for="nomeProjeto" class="form-label">Nome do Projeto</label>
+                <input type="text" class="form-control" id="nomeProjeto" th:field="*{nomeProjeto}" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="turma" class="form-label">Turma</label>
+                <select class="form-select" id="turma" th:field="*{turma.id}" required>
+                    <option disabled selected value="">Selecione...</option>
+                    <option th:each="t : ${turmas}" th:value="${t.id}" th:text="${t.nome}"></option>
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label for="documentosFiles" class="form-label">Anexar Documentos</label>
+                <input class="form-control" type="file" id="documentosFiles" name="documentosFiles" multiple>
+                <div class="form-text">Você pode selecionar múltiplos arquivos (PDF, DOCX, XLSX, etc.).</div>
+            </div>
+
+            <div class="col-12 mt-4" th:if="${projeto.id != null and not #lists.isEmpty(projeto.documentos)}">
+                <h5>Documentos Anexados:</h5>
+                <ul class="list-group">
+                    <li class="list-group-item" th:each="doc : ${projeto.documentos}">
+                        <a th:href="@{'/uploads/' + ${doc.urlArquivo}}" th:text="${doc.nomeArquivo}" target="_blank"></a>
+                    </li>
+                </ul>
+            </div>
+
+
+            <div class="col-12 mt-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-save"></i> Salvar
+                </button>
+                <a th:href="@{/projetos}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
