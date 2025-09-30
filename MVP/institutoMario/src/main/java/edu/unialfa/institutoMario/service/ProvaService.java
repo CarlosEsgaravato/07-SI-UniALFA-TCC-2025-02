@@ -22,8 +22,11 @@ public class ProvaService {
         return repository.findAll();
     }
 
+    @Transactional
     public Prova buscarPorId(Long id) {
-        return repository.findById(id).get();
+        Prova prova = repository.findById(id).orElseThrow(() -> new RuntimeException("Prova não encontrada!"));
+        prova.getQuestoes().size();
+        return prova;
     }
 
     public void deletarPorId(Long id) {

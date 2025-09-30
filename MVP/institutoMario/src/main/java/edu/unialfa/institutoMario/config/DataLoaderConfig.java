@@ -26,19 +26,19 @@ public class DataLoaderConfig {
                 tipoAdmin = tipoUsuarioRepository.save(tipoAdmin);
                 System.out.println("Tipo de usuário 'ADMIN' inserido com sucesso.");
             }
-            TipoUsuario tipoAluno = tipoUsuarioRepository.findByDescricao("ALUNO");
-            if (tipoAluno == null) {
-                tipoAluno = new TipoUsuario();
-                tipoAluno.setDescricao("ALUNO");
-                tipoAluno = tipoUsuarioRepository.save(tipoAluno);
-                System.out.println("Tipo de usuário 'ALUNO' inserido com sucesso.");
-            }
             TipoUsuario tipoProfessor = tipoUsuarioRepository.findByDescricao("PROFESSOR");
             if (tipoProfessor == null) {
                 tipoProfessor = new TipoUsuario();
                 tipoProfessor.setDescricao("PROFESSOR");
                 tipoProfessor = tipoUsuarioRepository.save(tipoProfessor);
                 System.out.println("Tipo de usuário 'PROFESSOR' inserido com sucesso.");
+            }
+            TipoUsuario tipoAluno = tipoUsuarioRepository.findByDescricao("ALUNO");
+            if (tipoAluno == null) {
+                tipoAluno = new TipoUsuario();
+                tipoAluno.setDescricao("ALUNO");
+                tipoAluno = tipoUsuarioRepository.save(tipoAluno);
+                System.out.println("Tipo de usuário 'ALUNO' inserido com sucesso.");
             }
             if (usuarioRepository.findByCpf("12345678900") == null) {
                 Usuario admin = new Usuario();

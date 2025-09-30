@@ -5,8 +5,6 @@ import edu.unialfa.institutoMario.dto.RespostaSimplesDTO;
 import edu.unialfa.institutoMario.model.Aluno;
 import edu.unialfa.institutoMario.model.Questao;
 import edu.unialfa.institutoMario.model.RespostaAluno;
-import edu.unialfa.institutoMario.model.Usuario;
-import edu.unialfa.institutoMario.repository.ProvaRepository;
 import edu.unialfa.institutoMario.repository.QuestaoRepository;
 import edu.unialfa.institutoMario.repository.RespostaAlunoRepository;
 import jakarta.transaction.Transactional;
@@ -40,20 +38,28 @@ public class RespostaAlunoService {
         respostaAlunoRepository.deleteById(id);
     }
 
+    @Transactional
     public void processarRespostas(CorrecaoProvaRequest request) {
+        boolean jaRespondeu = respostaAlunoRepository.existsByProvaIdAndAlunoId(
+                request.getIdProva(),
+                request.getIdAluno()
+        );
+
+        if (jaRespondeu) {
+            throw new IllegalStateException("Esta prova já foi respondida por este aluno.");
+        }
+
         Aluno alunoEntity = alunoService.buscarPorId(request.getIdAluno());
         Long idProva = request.getIdProva();
 
         for (RespostaSimplesDTO respostaDto : request.getRespostas()) {
             RespostaAluno respostaAluno = new RespostaAluno();
-
             respostaAluno.setAluno(alunoEntity);
 
             Optional<Questao> questaoOpt = questaoRepository.findByProvaIdAndNumero(idProva, respostaDto.getNumeroQuestao());
 
             if (questaoOpt.isPresent()) {
                 Questao questao = questaoOpt.get();
-
                 respostaAluno.setProva(questao.getProva());
                 respostaAluno.setNumeroQuestao(respostaDto.getNumeroQuestao());
                 respostaAluno.setAlternativaEscolhida(respostaDto.getAlternativaEscolhida());
@@ -68,5 +74,9 @@ public class RespostaAlunoService {
 
     public List<RespostaAluno> buscarPorAluno(Long alunoId) {
         return respostaAlunoRepository.findByAlunoId(alunoId);
+    }
+
+    public List<Long> buscarIdsDeProvasRespondidas(Long alunoId) {
+        return respostaAlunoRepository.findProvasRespondidasIdsByAlunoId(alunoId);
     }
 }

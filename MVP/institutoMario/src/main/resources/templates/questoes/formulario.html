@@ -1,86 +1,155 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="index :: head">
+<head th:replace="~{index :: head}">
   <meta charset="UTF-8">
-  <title>Cadastro de Questões - Hackathon</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Gerenciar Questões</title>
 </head>
 <body>
 
-<div th:replace="index :: sidebar"></div>
+<div th:replace="~{index :: sidebar}"></div>
 
 <div class="main-content">
-  <h2 th:text="'Cadastro de Questões - Prova #' + ${prova.id}"></h2>
+  <h2 th:text="'Gerenciar Questões - Prova #' + ${prova.id}"></h2>
 
-  <form th:action="@{/questoes/salvar}" th:object="${questao}" method="post" class="mt-4">
-    <input type="hidden" th:field="*{id}" />
-    <input type="hidden" th:field="*{prova.id}" />
+  <form th:action="@{/questoes/salvar-tudo}" th:object="${provaComQuestoes}" method="post" class="mt-4">
+    <input type="hidden" th:field="*{provaId}" />
 
-    <div class="mb-3">
-      <label class="form-label">Número da Questão</label>
-      <input type="number" min="0" th:field="*{numero}" class="form-control" required />
-    </div>
+    <table class="table table-bordered mt-3" id="questoes-table">
+      <thead class="table-dark">
+      <tr>
+        <th>Número</th>
+        <th>Pontuação</th>
+        <th>Alt. Correta</th>
+        <th style="width: 120px;">Detalhes</th>
+        <th style="width: 100px;">Ações</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="questao, status : *{questoes}">
+        <input type="hidden" th:field="*{questoes[__${status.index}__].id}" />
+        <input type="hidden" class="enunciado-hidden" th:field="*{questoes[__${status.index}__].enunciado}" />
+        <input type="hidden" class="altA-hidden" th:field="*{questoes[__${status.index}__].alternativaA}" />
+        <input type="hidden" class="altB-hidden" th:field="*{questoes[__${status.index}__].alternativaB}" />
+        <input type="hidden" class="altC-hidden" th:field="*{questoes[__${status.index}__].alternativaC}" />
+        <input type="hidden" class="altD-hidden" th:field="*{questoes[__${status.index}__].alternativaD}" />
+        <input type="hidden" class="altE-hidden" th:field="*{questoes[__${status.index}__].alternativaE}" />
 
-    <div class="mb-3">
-      <label class="form-label">Pontuação da Questão</label>
-      <input type="number" step="0.1" min="0" th:field="*{pontuacao}" class="form-control" required />
-    </div>
+        <td><input type="number" min="1" class="form-control" th:field="*{questoes[__${status.index}__].numero}" required /></td>
+        <td><input type="number" step="0.1" min="0" class="form-control" th:field="*{questoes[__${status.index}__].pontuacao}" required /></td>
+        <td>
+          <select class="form-select" th:field="*{questoes[__${status.index}__].alternativaCorreta}" required>
+            <option value="A">A</option> <option value="B">B</option> <option value="C">C</option> <option value="D">D</option> <option value="E">E</option>
+          </select>
+        </td>
+        <td><button type="button" class="btn btn-sm btn-info btn-editar-detalhes" data-bs-toggle="modal" data-bs-target="#detalhesModal">Editar</button></td>
+        <td><button type="button" class="btn btn-sm btn-danger btn-remover"><i class="bi bi-trash"></i></button></td>
+      </tr>
+      </tbody>
+    </table>
 
-    <div class="mb-3">
-      <label class="form-label" for="alternativaCorreta">Alternativa Correta</label>
-      <select class="form-select" id="alternativaCorreta" name="alternativaCorreta" required>
-        <option value="" disabled selected>Selecione...</option>
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-        <option value="D">D</option>
-        <option value="E">E</option>
-      </select>
-    </div>
-
-    <button type="submit" class="btn btn-success">
-      <i class="bi"
-         th:classappend="${questao.id} != null ? 'bi-pencil-fill' : 'bi-plus-circle'"></i>
-      <span th:text="${questao.id} != null ? 'Alterar Questão' : 'Adicionar Questão'"></span>
-    </button>
-    <a th:href="@{/provas}" class="btn btn-secondary ms-2">Finalizar</a>
+    <button type="button" id="btn-adicionar-questao" class="btn btn-primary mt-2"><i class="bi bi-plus-circle"></i> Adicionar Questão</button>
+    <hr class="my-4" />
+    <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Salvar Todas as Questões</button>
+    <a th:href="@{/provas}" class="btn btn-secondary ms-2">Cancelar</a>
   </form>
-
-  <hr class="my-5" />
-
-  <h4>Questões Cadastradas</h4>
-  <table class="table table-bordered mt-3">
-    <thead class="table-dark">
-    <tr>
-      <th>Número da Questão</th>
-      <th>Alternativa Correta</th>
-      <th>Pontuação</th>
-      <th>Ações</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="q: ${questoes}">
-      <td th:text="${q.numero}"></td>
-      <td th:text="${q.alternativaCorreta}"></td>
-      <td th:text="${q.pontuacao}"></td>
-      <td>
-        <a th:href="@{'/questoes/editar/' + ${q.id} + '?provaId=' + ${prova.id}}"
-           class="btn btn-sm btn-warning me-1">
-          <i class="bi bi-pencil-fill"></i>
-        </a>
-        <a th:href="@{'/questoes/deletar/' + ${q.id} + '?provaId=' + ${prova.id}}"
-           class="btn btn-sm btn-danger"
-           onclick="return confirm('Excluir esta questão?');">
-          <i class="bi bi-trash"></i>
-        </a>
-      </td>
-    </tr>
-    <tr th:if="${#lists.isEmpty(questoes)}">
-      <td colspan="4" class="text-center">Nenhuma questão cadastrada ainda.</td>
-    </tr>
-    </tbody>
-  </table>
 </div>
+
+<div class="modal fade" id="detalhesModal" tabindex="-1" aria-labelledby="detalhesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detalhesModalLabel">Detalhes da Questão</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="modal-edit-index">
+        <div class="mb-3">
+          <label for="modal-enunciado" class="form-label">Enunciado</label>
+          <textarea class="form-control" id="modal-enunciado" rows="3"></textarea>
+        </div>
+        <div class="mb-3"><label for="modal-altA" class="form-label">Alternativa A</label><input type="text" class="form-control" id="modal-altA"></div>
+        <div class="mb-3"><label for="modal-altB" class="form-label">Alternativa B</label><input type="text" class="form-control" id="modal-altB"></div>
+        <div class="mb-3"><label for="modal-altC" class="form-label">Alternativa C</label><input type="text" class="form-control" id="modal-altC"></div>
+        <div class="mb-3"><label for="modal-altD" class="form-label">Alternativa D</label><input type="text" class="form-control" id="modal-altD"></div>
+        <div class="mb-3"><label for="modal-altE" class="form-label">Alternativa E</label><input type="text" class="form-control" id="modal-altE"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-primary" id="btn-salvar-detalhes">Salvar Detalhes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+      let index = $('#questoes-table tbody tr').length;
+
+      // Adicionar nova questão
+      $('#btn-adicionar-questao').on('click', function() {
+          var newRow = `
+              <tr>
+                  <input type="hidden" name="questoes[${index}].id" value="" />
+                  <input type="hidden" class="enunciado-hidden" name="questoes[${index}].enunciado" value="" />
+                  <input type="hidden" class="altA-hidden" name="questoes[${index}].alternativaA" value="" />
+                  <input type="hidden" class="altB-hidden" name="questoes[${index}].alternativaB" value="" />
+                  <input type="hidden" class="altC-hidden" name="questoes[${index}].alternativaC" value="" />
+                  <input type="hidden" class="altD-hidden" name="questoes[${index}].alternativaD" value="" />
+                  <input type="hidden" class="altE-hidden" name="questoes[${index}].alternativaE" value="" />
+                  <td><input type="number" min="1" class="form-control" name="questoes[${index}].numero" required /></td>
+                  <td><input type="number" step="0.1" min="0" class="form-control" name="questoes[${index}].pontuacao" required /></td>
+                  <td>
+                      <select class="form-select" name="questoes[${index}].alternativaCorreta" required>
+                           <option value="" disabled selected>...</option>
+                           <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
+                      </select>
+                  </td>
+                  <td><button type="button" class="btn btn-sm btn-info btn-editar-detalhes" data-bs-toggle="modal" data-bs-target="#detalhesModal">Editar</button></td>
+                  <td><button type="button" class="btn btn-sm btn-danger btn-remover"><i class="bi bi-trash"></i></button></td>
+              </tr>
+          `;
+          $('#questoes-table tbody').append(newRow);
+          index++;
+      });
+
+      // Abrir modal e carregar dados da linha
+      $('#questoes-table tbody').on('click', '.btn-editar-detalhes', function() {
+          let row = $(this).closest('tr');
+          let rowIndex = row.index();
+          $('#modal-edit-index').val(rowIndex);
+
+          $('#modal-enunciado').val(row.find('.enunciado-hidden').val());
+          $('#modal-altA').val(row.find('.altA-hidden').val());
+          $('#modal-altB').val(row.find('.altB-hidden').val());
+          $('#modal-altC').val(row.find('.altC-hidden').val());
+          $('#modal-altD').val(row.find('.altD-hidden').val());
+          $('#modal-altE').val(row.find('.altE-hidden').val());
+      });
+
+      // Salvar dados do modal de volta para os campos ocultos da linha
+      $('#btn-salvar-detalhes').on('click', function() {
+          let rowIndex = $('#modal-edit-index').val();
+          let row = $('#questoes-table tbody tr').eq(rowIndex);
+
+          row.find('.enunciado-hidden').val($('#modal-enunciado').val());
+          row.find('.altA-hidden').val($('#modal-altA').val());
+          row.find('.altB-hidden').val($('#modal-altB').val());
+          row.find('.altC-hidden').val($('#modal-altC').val());
+          row.find('.altD-hidden').val($('#modal-altD').val());
+          row.find('.altE-hidden').val($('#modal-altE').val());
+
+          $('#detalhesModal').modal('hide');
+      });
+
+      // Remover linha
+      $('#questoes-table tbody').on('click', '.btn-remover', function() {
+          $(this).closest('tr').remove();
+      });
+  });
+</script>
 
 </body>
 </html>

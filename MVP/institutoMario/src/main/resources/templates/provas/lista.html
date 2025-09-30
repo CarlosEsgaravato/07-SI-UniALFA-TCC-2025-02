@@ -19,6 +19,7 @@
         <thead class="table-dark">
         <tr>
             <th>#</th>
+            <th>Título</th>
             <th>Data</th>
             <th>Disciplina</th>
             <th>Professor</th>
@@ -29,27 +30,33 @@
         <tbody>
         <tr th:each="prova : ${provas}">
             <td th:text="${prova.id}">#</td>
+            <td th:text="${prova.titulo}">Título da Prova</td>
             <td th:text="${#temporals.format(prova.data, 'dd/MM/yyyy')}">20/06/2025</td>
             <td th:text="${prova.disciplina.nome}">Disciplina</td>
             <td th:text="${prova.disciplina.professor.usuario.nome}">Professor</td>
             <td>
-                <a th:href="@{'/questoes/prova/' + ${prova.id} + '/cadastrar'}" class="btn btn-sm btn-primary me-1" title="Cadastrar questão">
+                <a th:href="@{'/questoes/prova/' + ${prova.id} + '/gerenciar'}" class="btn btn-sm btn-primary me-1" title="Cadastrar questão">
                     <i class="bi bi-plus-circle"></i>
                 </a>
             </td>
             <td>
-                <a th:href="@{'/provas/editar/' + ${prova.id}}" class="btn btn-sm btn-warning me-1">
+                <a th:href="@{'/provas/editar/' + ${prova.id}}" class="btn btn-sm btn-warning me-1" title="Editar Prova">
                     <i class="bi bi-pencil-fill"></i>
                 </a>
+
+                <a th:href="@{'/provas/exportar/' + ${prova.id}}" target="_blank" class="btn btn-sm btn-info me-1" title="Exportar/Imprimir Prova">
+                    <i class="bi bi-printer-fill"></i>
+                </a>
+
                 <a th:href="@{'/provas/deletar/' + ${prova.id}}"
                    class="btn btn-sm btn-danger"
-                   onclick="return confirm('Tem certeza que deseja excluir esta prova?');">
+                   onclick="return confirm('Tem certeza que deseja excluir esta prova?');" title="Excluir Prova">
                     <i class="bi bi-trash-fill"></i>
                 </a>
             </td>
         </tr>
         <tr th:if="${#lists.isEmpty(provas)}">
-            <td colspan="4" class="text-center">Nenhuma prova cadastrada.</td>
+            <td colspan="7" class="text-center">Nenhuma prova cadastrada.</td>
         </tr>
         </tbody>
     </table>

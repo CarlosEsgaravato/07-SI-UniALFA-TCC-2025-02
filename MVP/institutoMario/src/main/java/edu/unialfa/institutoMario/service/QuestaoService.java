@@ -1,5 +1,6 @@
 package edu.unialfa.institutoMario.service;
 
+import edu.unialfa.institutoMario.dto.ProvaComQuestoesDTO;
 import edu.unialfa.institutoMario.model.Prova;
 import edu.unialfa.institutoMario.model.Questao;
 import edu.unialfa.institutoMario.repository.QuestaoRepository;
@@ -13,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class QuestaoService {
     private final QuestaoRepository repository;
+    private final ProvaService provaService;
 
     @Transactional
     public void salvar(Questao questao) {
@@ -36,5 +38,18 @@ public class QuestaoService {
     }
     public List<Questao> listarPorProva(Prova prova) {
         return repository.findByProva(prova);
+    }
+
+    @Transactional
+    public void atualizarQuestoesDaProva(ProvaComQuestoesDTO dto) {
+        Prova prova = provaService.buscarPorId(dto.getProvaId());
+        prova.getQuestoes().clear();
+        if (dto.getQuestoes() != null) {
+            for(Questao q : dto.getQuestoes()){
+                q.setProva(prova);
+            }
+            prova.getQuestoes().addAll(dto.getQuestoes());
+        }
+        provaService.salvar(prova);
     }
 }
