@@ -19,6 +19,8 @@ public class Prova {
 
     private LocalDate data;
 
+    private String titulo;
+
     @ManyToOne
     @JoinColumn(name = "id_disciplina")
     @JsonManagedReference

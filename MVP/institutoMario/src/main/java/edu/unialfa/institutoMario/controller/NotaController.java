@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Collections;
 import java.util.List;
 
 @Controller
@@ -33,8 +34,13 @@ public class NotaController {
 
         switch (usuarioLogado.getTipoUsuario().getDescricao().toUpperCase()) {
             case "ALUNO" -> {
-                Aluno aluno = alunoService.buscarPorUsuario(usuarioLogado);
-                notasAgrupadas = notaService.buscarNotasDoAlunoAgrupadas(aluno.getId());
+               try {
+                   Aluno aluno = alunoService.buscarPorUsuario(usuarioLogado);
+                   notasAgrupadas = notaService.buscarNotasDoAlunoAgrupadas(aluno.getId());
+               }catch(RuntimeException e){
+                   model.addAttribute("mensagemErro", "Seu usuário não está vinculado a um cadastro de aluno ou matrícula. Por favor, entre em contato com a secretaria.");
+                       notasAgrupadas = Collections.emptyList();
+            }
             }
             case "PROFESSOR" -> {
                 Professor professor = professorService.buscarPorUsuario(usuarioLogado);

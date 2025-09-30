@@ -3,7 +3,6 @@ package edu.unialfa.institutoMario.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.math.BigDecimal;
 
 @Entity
@@ -15,8 +14,16 @@ public class Questao {
     private Long id;
 
     private String numero;
-
     private BigDecimal pontuacao;
+
+    @Column(columnDefinition = "TEXT") // TEXT para enunciados longos
+    private String enunciado;
+
+    private String alternativaA;
+    private String alternativaB;
+    private String alternativaC;
+    private String alternativaD;
+    private String alternativaE;
 
     private String alternativaCorreta;
 

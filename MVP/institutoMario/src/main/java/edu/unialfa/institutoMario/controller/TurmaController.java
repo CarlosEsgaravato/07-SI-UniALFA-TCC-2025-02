@@ -17,7 +17,7 @@ public class TurmaController {
     @GetMapping
     public String listar(Model model) {
         model.addAttribute("turmas", turmaService.listarTodas());
-        return "turmas/lista"; // exemplo de template
+        return "turmas/lista";
     }
 
     @GetMapping("/nova")
