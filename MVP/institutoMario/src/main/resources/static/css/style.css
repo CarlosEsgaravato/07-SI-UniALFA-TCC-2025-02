@@ -26,11 +26,17 @@
     background-color: #004aad;
     color: white;
     padding-top: 20px;
+
+    /*  Fixar layout em coluna */
+    display: flex;
+    flex-direction: column;
 }
+
 .sidebar-logo {
     max-width: 180px;
     margin: auto;
 }
+
 .sidebar a {
     padding: 12px 20px;
     display: block;
@@ -39,19 +45,32 @@
     font-size: 16px;
     transition: background 0.2s;
 }
+
 .sidebar a:hover {
     background-color: #003080;
 }
+
 .sidebar a i {
     margin-right: 8px;
+}
+
+.sidebar a.active {
+    background-color: #003080; /* Um azul um pouco mais escuro que o hover */
+    font-weight: 600; /* Deixa o texto em negrito */
+}
+
+/*  Estilo especial para o botão Sair */
+.sidebar a.logout {
+    margin-top: auto;
+    color: red;     /* vermelho claro */
+    font-weight: 600;
+}
+.sidebar a.logout:hover {
+    background-color: #003080;
 }
 
 /* Conteúdo principal */
 .main-content {
     margin-left: 260px;
     padding: 30px;
-}
-.sidebar a.active {
-    background-color: #003080; /* Um azul um pouco mais escuro que o hover */
-    font-weight: 600; /* Deixa o texto em negrito */
 }
