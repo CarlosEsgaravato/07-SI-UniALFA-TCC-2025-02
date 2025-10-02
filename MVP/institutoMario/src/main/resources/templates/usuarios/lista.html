@@ -15,10 +15,10 @@
             </a>
         </div>
 
-        <table class="table table-hover table-bordered bg-white">
-            <thead class="table-dark">
+        <table class="table table-striped">
+            <thead class="table-header">
             <tr>
-                <th>#</th>
+                <th>ID</th>
                 <th>Nome</th>
                 <th>Email</th>
                 <th>CPF</th>
@@ -29,7 +29,7 @@
             </thead>
             <tbody>
             <tr th:each="usuario : ${usuarios}">
-                <td th:text="${usuario.id}">#</td>
+                <td th:text="${usuario.id}">ID</td>
                 <td th:text="${usuario.nome}">Nome</td>
                 <td th:text="${usuario.email}">Email</td>
                 <td th:text="${usuario.cpf}">CPF</td>

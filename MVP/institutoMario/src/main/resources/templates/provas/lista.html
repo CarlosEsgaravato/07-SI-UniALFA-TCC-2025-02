@@ -15,10 +15,10 @@
         </a>
     </div>
 
-    <table class="table table-hover table-bordered bg-white">
-        <thead class="table-dark">
+    <table class="table table-striped">
+        <thead class="table-header">
         <tr>
-            <th>#</th>
+            <th>ID</th>
             <th>Título</th>
             <th>Data</th>
             <th>Disciplina</th>
@@ -29,7 +29,7 @@
         </thead>
         <tbody>
         <tr th:each="prova : ${provas}">
-            <td th:text="${prova.id}">#</td>
+            <td th:text="${prova.id}">ID</td>
             <td th:text="${prova.titulo}">Título da Prova</td>
             <td th:text="${#temporals.format(prova.data, 'dd/MM/yyyy')}">20/06/2025</td>
             <td th:text="${prova.disciplina.nome}">Disciplina</td>

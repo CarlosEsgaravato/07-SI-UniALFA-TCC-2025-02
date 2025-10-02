@@ -9,13 +9,13 @@
 <div th:replace="~{index :: sidebar}"></div>
 
 <div class="main-content">
-  <h2 th:text="'Gerenciar Questões - Prova #' + ${prova.id}"></h2>
+  <h2 th:text="'Gerenciar Questões - Prova #' + ${prova.disciplina.nome}"></h2>
 
   <form th:action="@{/questoes/salvar-tudo}" th:object="${provaComQuestoes}" method="post" class="mt-4">
     <input type="hidden" th:field="*{provaId}" />
 
     <table class="table table-bordered mt-3" id="questoes-table">
-      <thead class="table-dark">
+      <thead class="table-header">
       <tr>
         <th>Número</th>
         <th>Pontuação</th>
