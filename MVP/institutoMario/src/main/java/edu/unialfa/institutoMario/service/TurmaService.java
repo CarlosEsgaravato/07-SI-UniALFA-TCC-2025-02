@@ -14,6 +14,7 @@ import java.util.List;
 public class TurmaService {
 
     private final TurmaRepository turmaRepository;
+    private final AlunoService alunoService; // INJEÇÃO ADICIONADA AQUI
 
     public List<Turma> listarTodas() {
         return turmaRepository.findAll();
@@ -38,5 +39,13 @@ public class TurmaService {
                 .getDisciplinas();
     }
 
+    public long contarTodasTurmas() {
+        return turmaRepository.count();
+    }
 
+    public String buscarNomeDaTurmaDoAluno(Long alunoId) {
+        return alunoService.buscarTurmaDoAluno(alunoId)
+                .map(Turma::getNome)
+                .orElse("Turma Não Definida");
+    }
 }

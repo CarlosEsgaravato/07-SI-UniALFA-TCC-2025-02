@@ -17,7 +17,6 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class UsuarioService implements UserDetailsService {
-
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -25,8 +24,7 @@ public class UsuarioService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
             Long id = Long.parseLong(username);
-            return usuarioRepository.findById(id)
-                    .orElseThrow(() -> new UsernameNotFoundException("Usuário com ID " + id + " não encontrado"));
+            return usuarioRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("Usuário com ID " + id + " não encontrado"));
         } catch (NumberFormatException e) {
             throw new UsernameNotFoundException("ID inválido: " + username);
         }
@@ -35,23 +33,18 @@ public class UsuarioService implements UserDetailsService {
     @Transactional
     public void salvar(Usuario usuario) {
         if (usuario.getId() != null) {
-            Usuario original = usuarioRepository.findById(usuario.getId())
-                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
+            Usuario original = usuarioRepository.findById(usuario.getId()).orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
             if (usuario.getSenha() == null || usuario.getSenha().isBlank()) {
                 usuario.setSenha(original.getSenha());
             } else {
                 usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
             }
-
         } else {
             if (usuario.getSenha() == null || usuario.getSenha().isBlank()) {
                 throw new IllegalArgumentException("Senha é obrigatória no cadastro.");
             }
-
             usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         }
-
         usuarioRepository.save(usuario);
     }
 
@@ -70,5 +63,15 @@ public class UsuarioService implements UserDetailsService {
     public Usuario getUsuarioLogado() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return (Usuario) auth.getPrincipal();
+    }
+
+    public boolean existsByEmailAndIdNot(String email, Long id) {
+        Long idVerificado = id != null ? id : 0L;
+        return usuarioRepository.existsByEmailAndIdNot(email, idVerificado);
+    }
+
+    public boolean existsByCpfAndIdNot(String cpf, Long id) {
+        Long idVerificado = id != null ? id : 0L;
+        return usuarioRepository.existsByCpfAndIdNot(cpf, idVerificado);
     }
 }

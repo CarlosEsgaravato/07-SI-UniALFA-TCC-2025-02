@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -25,7 +26,8 @@ public class AlunoService {
     }
 
     public Aluno buscarPorId(Long id) {
-        return repository.findById(id).get();
+        // Ajustado para usar orElseThrow, mais seguro que .get()
+        return repository.findById(id).orElseThrow(() -> new RuntimeException("Aluno não encontrado."));
     }
 
     public void deletarPorId(Long id) {
@@ -52,5 +54,14 @@ public class AlunoService {
     public Aluno buscarPorUsuario(Usuario usuario) {
         return repository.findByUsuario(usuario)
                 .orElseThrow(() -> new RuntimeException("Aluno não encontrado para o usuário logado"));
+    }
+
+    public long contarTodosAlunos() {
+        return repository.count();
+    }
+
+    public Optional<Turma> buscarTurmaDoAluno(Long alunoId) {
+        return repository.findById(alunoId)
+                .map(Aluno::getTurma);
     }
 }

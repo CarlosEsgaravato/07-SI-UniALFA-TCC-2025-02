@@ -27,9 +27,10 @@
     color: white;
     padding-top: 20px;
 
-    /*  Fixar layout em coluna */
+    /* Fixar layout em coluna */
     display: flex;
     flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Sombra sutil para destacar */
 }
 
 .sidebar-logo {
@@ -43,34 +44,101 @@
     color: white;
     text-decoration: none;
     font-size: 16px;
-    transition: background 0.2s;
+    transition: background 0.2s, padding-left 0.2s;
 }
 
 .sidebar a:hover {
     background-color: #003080;
-}
-
-.sidebar a i {
-    margin-right: 8px;
+    padding-left: 25px; /* Efeito sutil de movimento */
 }
 
 .sidebar a.active {
-    background-color: #003080; /* Um azul um pouco mais escuro que o hover */
-    font-weight: 600; /* Deixa o texto em negrito */
+    background-color: #003080;
+    font-weight: 600;
+    border-left: 4px solid #ffffff; /* Linha de destaque para o ativo */
 }
 
-/*  Estilo especial para o botão Sair */
+/* Estilo especial para o botão Sair */
 .sidebar a.logout {
     margin-top: auto;
-    color: red;     /* vermelho claro */
+    color: #ff9999;     /* vermelho claro */
     font-weight: 600;
 }
 .sidebar a.logout:hover {
     background-color: #003080;
+    color: #ff0000;
 }
 
 /* Conteúdo principal */
 .main-content {
     margin-left: 260px;
     padding: 30px;
+    background-color: #f7f9fc; /* Fundo suave */
+    min-height: 100vh;
+}
+
+/* ===== Dashboards / Cards do index ===== */
+.dashboard-card {
+    border-radius: 12px; /* Cantos mais arredondados */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06); /* Sombra mais destacada */
+    border: none; /* Remove a borda padrão do bootstrap */
+    transition: transform .2s ease, box-shadow .2s ease;
+    background-color: #ffffff;
+}
+.dashboard-card:hover {
+    transform: translateY(-5px); /* Movimento mais pronunciado */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.dashboard-icon {
+    font-size: 2.8rem; /* Ícone maior */
+    color: #004aad;
+    background: rgba(0,74,173,0.12); /* Fundo do ícone mais visível */
+    padding: 15px; /* Padding maior */
+    border-radius: 12px;
+    display: inline-block;
+    min-width: 70px; /* Garante que o ícone mantenha um tamanho mínimo */
+    text-align: center;
+}
+
+.h3 { /* Estilo para os números principais (turmasCount, etc) */
+    font-weight: 700;
+    color: #333;
+}
+
+/* Card da lista de médias por turma */
+.dashboard-table-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #e0e4eb;
+}
+
+.dashboard-table-card .card-header {
+    background-color: #f0f4f8;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    font-weight: 600;
+    color: #004aad;
+}
+
+/* Sidebox eventos */
+.sidebox-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #e0e4eb;
+}
+
+/* melhorar visual das list-group-items dentro do sidebox */
+.sidebox-card .list-group-item {
+    padding-top: .8rem;
+    padding-bottom: .8rem;
+    border-color: #f0f4f8;
+}
+
+/* responsividade: ajustes leves */
+@media (max-width: 991px) {
+    .dashboard-icon { font-size: 2rem; padding: 12px; }
+    .h3 { font-size: 1.5rem; }
+    .main-content { margin-left: 0; padding: 15px; }
+    .sidebar { display: none; } /* Em telas pequenas, a sidebar deve ser ativada por um botão (toggle) */
 }

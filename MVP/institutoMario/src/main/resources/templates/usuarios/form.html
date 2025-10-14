@@ -11,6 +11,11 @@
     <div class="container">
         <h2 class="mb-4" th:text="${usuario.id == null} ? 'Cadastrar Usuário' : 'Editar Usuário'"></h2>
 
+        <div th:if="${erroGeral != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong th:text="${erroGeral}"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
         <form th:action="@{/usuarios}" th:object="${usuario}" method="post" class="row g-3 needs-validation" novalidate>
             <input type="hidden" th:field="*{id}"/>
 
@@ -20,14 +25,12 @@
                 <div class="invalid-feedback">Por favor, preencha o nome.</div>
             </div>
 
-            <div class="col-md-6">
-                <label for="email" class="form-label">E-mail</label>
+            <div class="col-md-6"> <label for="email" class="form-label">E-mail</label>
                 <input type="email" class="form-control" id="email" th:field="*{email}" required>
                 <div class="invalid-feedback">E-mail inválido.</div>
             </div>
 
-            <div class="col-md-6">
-                <label for="cpf" class="form-label">CPF</label>
+            <div class="col-md-6"> <label for="cpf" class="form-label">CPF</label>
                 <input type="text" class="form-control" id="cpf" th:field="*{cpf}" required>
                 <div class="invalid-feedback">Preencha o CPF.</div>
             </div>
