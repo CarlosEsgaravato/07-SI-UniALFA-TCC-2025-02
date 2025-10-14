@@ -3,20 +3,20 @@ package edu.unialfa.institutoMario.service;
 import edu.unialfa.institutoMario.dto.EventoDto;
 import edu.unialfa.institutoMario.model.Evento;
 import edu.unialfa.institutoMario.repository.EventoRepository;
-import edu.unialfa.institutoMario.repository.TurmaRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class EventoService {
 
-    @Autowired
-    private EventoRepository repository;
+    // Injeção via construtor (@AllArgsConstructor)
+    private final EventoRepository repository;
 
     @Transactional
     public void salvar(Evento evento){
@@ -36,5 +36,14 @@ public class EventoService {
             throw new RuntimeException("Evento com id " + id + " não encontrado para exclusão.");
         }
         repository.deleteById(id);
+    }
+
+
+    public List<Evento> buscarProximosEventos(int limite) {
+
+        return repository.findByDataAfterOrderByDataAsc(
+                LocalDateTime.now(),
+                PageRequest.of(0, limite)
+        );
     }
 }
