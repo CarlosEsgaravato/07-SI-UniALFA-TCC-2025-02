@@ -43,8 +43,6 @@ public class UsuarioController {
         boolean cpfJaExiste = usuarioService.existsByCpfAndIdNot(usuario.getCpf(), usuario.getId());
 
         if (emailJaExiste || cpfJaExiste) {
-
-
             String mensagemErro = "";
             if (emailJaExiste) {
                 mensagemErro += "O E-mail '" + usuario.getEmail() + "' já está cadastrado no sistema. ";
@@ -54,9 +52,7 @@ public class UsuarioController {
             }
 
             model.addAttribute("erroGeral", mensagemErro.trim());
-
             model.addAttribute("tipos", tipoUsuarioService.listarTodos());
-
             return "usuarios/form";
         }
 
@@ -92,5 +88,22 @@ public class UsuarioController {
             model.addAttribute("tipos", tipoUsuarioService.listarTodos()); // Recarrega tipos em caso de erro
             return "usuarios/form";
         }
+    }
+
+    @GetMapping("editar/{id}")
+    public String editar(@PathVariable Long id, Model model) {
+        Usuario usuario = usuarioService.buscarPorId(id);
+
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("tipos", tipoUsuarioService.listarTodos());
+
+        return "usuarios/form";
+    }
+
+    @GetMapping("deletar/{id}")
+    public String deletar(@PathVariable Long id) {
+        usuarioService.deletarPorId(id);
+
+        return "redirect:/usuarios";
     }
 }
