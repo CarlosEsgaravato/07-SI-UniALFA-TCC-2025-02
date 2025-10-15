@@ -19,6 +19,8 @@ import java.util.List;
 public class UsuarioService implements UserDetailsService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AlunoService alunoService;
+    private final ProfessorService professorService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -53,10 +55,13 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public Usuario buscarPorId(Long id) {
-        return usuarioRepository.findById(id).get();
+        return usuarioRepository.findById(id).orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + id));
     }
 
+    @Transactional
     public void deletarPorId(Long id) {
+        professorService.deletarPorUsuarioId(id);
+        alunoService.deletarPorUsuarioId(id);
         usuarioRepository.deleteById(id);
     }
 
