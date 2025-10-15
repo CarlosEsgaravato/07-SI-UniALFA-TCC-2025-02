@@ -1,54 +1,56 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="index :: head">
-  <meta charset="UTF-8">
-  <title>Notas por Disciplina</title>
+    <meta charset="UTF-8">
+    <title>Notas por Disciplina</title>
 </head>
 <body>
 <div th:replace="index :: sidebar"></div>
 
 <div class="main-content">
-  <h1 class="mb-4">Notas por Disciplina</h1>
+    <h1 class="mb-4">Notas por Disciplina</h1>
 
-  <div th:if="${mensagemErro}" class="alert alert-danger" role="alert">
-    <h4 class="alert-heading">Atenção!</h4>
-    <p th:text="${mensagemErro}"></p>
-  </div>
-
-  <div th:unless="${mensagemErro}">
-
-    <div th:if="${#lists.isEmpty(notasAgrupadas)}" class="alert alert-info">
-      Nenhuma nota cadastrada para você no momento.
+    <div th:if="${mensagemErro}" class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Atenção!</h4>
+        <p th:text="${mensagemErro}"></p>
     </div>
 
-    <div th:each="agrupamento : ${notasAgrupadas}" class="mb-5">
-      <h3 th:text="${agrupamento.nomeDisciplina}" class="mb-3 text-primary">Disciplina</h3>
+    <div th:unless="${mensagemErro}">
 
-        <table class="table table-striped">
-        <thead class="table-header">
-        <tr>
-          <th>#</th>
-          <th>Aluno</th>
-          <th>Data de Aplicação</th>
-          <th>Nota</th>
-          <th>Status</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="nota, iterStat : ${agrupamento.notas}">
-          <td th:text="${iterStat.index + 1}">1</td>
-          <td th:text="${nota.alunoNome}">Aluno</td>
-          <td th:text="${#temporals.format(nota.data, 'dd/MM/yyyy')}">Data de Aplicação</td>
-          <td th:text="${nota.notaTotal}">9.0</td>
-          <td>
-            <span th:if="${nota.notaTotal >= 7}" class="text-success fw-bold">Acima da média</span>
-            <span th:if="${nota.notaTotal < 7}" class="text-danger fw-bold">Abaixo da média</span>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+        <div th:if="${#lists.isEmpty(notasAgrupadas)}" class="text-center py-5 border rounded-3 bg-light">
+            <h4 class="text-secondary mb-1">Sem notas registradas</h4>
+            <p class="text-muted mb-0">Nenhuma nota foi lançada para você no momento.</p>
+        </div>
+
+        <div th:each="agrupamento : ${notasAgrupadas}" class="mb-5">
+            <h3 th:text="${agrupamento.nomeDisciplina}" class="mb-3 text-primary">Disciplina</h3>
+
+            <table class="table table-striped">
+                <thead class="table-header">
+                <tr>
+                    <th>#</th>
+                    <th>Aluno</th>
+                    <th>Data de Aplicação</th>
+                    <th>Nota</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="nota, iterStat : ${agrupamento.notas}">
+                    <td th:text="${iterStat.index + 1}">1</td>
+                    <td th:text="${nota.alunoNome}">Aluno</td>
+                    <td th:text="${#temporals.format(nota.data, 'dd/MM/yyyy')}">Data de Aplicação</td>
+                    <td th:text="${nota.notaTotal}">9.0</td>
+                    <td>
+                        <span th:if="${nota.notaTotal >= 7}" class="text-success fw-bold">Acima da média</span>
+                        <span th:if="${nota.notaTotal < 7}" class="text-danger fw-bold">Abaixo da média</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
     </div>
-
-  </div> </div>
+</div>
 </body>
 </html>
