@@ -9,4 +9,5 @@ public interface ProvaRepository extends JpaRepository<Prova, Long> {
     List<Prova> findByDisciplina_Professor_Usuario_Id(Long usuarioId);
     List<Prova> findByDisciplinaId(Long idDisciplina);
     List<Prova> findByDisciplina_Professor_Id(Long professorId);
+    List<Prova> findByDisciplina_Turma_id(Long turmaId);
 }

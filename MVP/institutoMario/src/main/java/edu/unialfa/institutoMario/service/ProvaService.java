@@ -40,5 +40,9 @@ public class ProvaService {
     public List<Prova> listarPorDisciplina(Long idDisciplina) {
         return repository.findByDisciplinaId(idDisciplina);
     }
+
+    public List<Prova> listarPorTurma(long turmaId){
+        return repository.findByDisciplina_Turma_id(turmaId);
+    }
 }
 

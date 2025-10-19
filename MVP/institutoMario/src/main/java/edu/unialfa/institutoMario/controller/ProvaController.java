@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -95,9 +96,15 @@ public class ProvaController {
 
     @GetMapping("/responder")
     public String listarProvasParaResponder(Model model, @AuthenticationPrincipal Usuario usuarioLogado) {
-        List<Prova> provas = provaService.listarTodos();
         Aluno aluno = alunoService.buscarPorUsuario(usuarioLogado);
         Long alunoId = aluno.getId();
+        List<Prova> provas;
+        if(aluno.getTurma() != null){
+            Long turmaId = aluno.getTurma().getId();
+            provas = provaService.listarPorTurma(turmaId);
+        }else {
+            provas = new ArrayList<>();
+        }
 
         List<Long> provasRespondidasIds = respostaAlunoService.buscarIdsDeProvasRespondidas(alunoId);
 

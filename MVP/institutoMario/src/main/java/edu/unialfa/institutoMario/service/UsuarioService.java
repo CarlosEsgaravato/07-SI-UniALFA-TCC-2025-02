@@ -4,6 +4,7 @@ import edu.unialfa.institutoMario.model.Usuario;
 import edu.unialfa.institutoMario.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.regex.Pattern;
 
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class UsuarioService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final AlunoService alunoService;
     private final ProfessorService professorService;
+    private static final Pattern APENAS_DIGITOS = Pattern.compile("^[0-9]+$");
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -34,6 +37,7 @@ public class UsuarioService implements UserDetailsService {
 
     @Transactional
     public void salvar(Usuario usuario) {
+        validarFormatoCPF(usuario.getCpf());
         if (usuario.getId() != null) {
             Usuario original = usuarioRepository.findById(usuario.getId()).orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
             if (usuario.getSenha() == null || usuario.getSenha().isBlank()) {
@@ -48,6 +52,19 @@ public class UsuarioService implements UserDetailsService {
             usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         }
         usuarioRepository.save(usuario);
+    }
+
+
+    private void validarFormatoCPF(String cpf){
+        if (cpf == null || cpf.isBlank()){
+            throw new IllegalArgumentException("O CPF é obrigatório.");
+        }
+        if (cpf.length() != 11){
+            throw new IllegalArgumentException("O CPF invalido.");
+        }
+        if (!APENAS_DIGITOS.matcher(cpf).matches()){
+            throw new IllegalArgumentException("O CPF deve conter apenas números.");
+        }
     }
 
     public List<Usuario> listarTodos() {

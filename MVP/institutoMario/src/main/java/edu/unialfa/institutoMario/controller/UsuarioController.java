@@ -8,12 +8,14 @@ import edu.unialfa.institutoMario.service.ProfessorService;
 import edu.unialfa.institutoMario.service.TipoUsuarioService;
 import edu.unialfa.institutoMario.service.UsuarioService;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @AllArgsConstructor
@@ -101,9 +103,15 @@ public class UsuarioController {
     }
 
     @GetMapping("deletar/{id}")
-    public String deletar(@PathVariable Long id) {
-        usuarioService.deletarPorId(id);
-
+    public String deletar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+       try {
+           usuarioService.deletarPorId(id);
+           redirectAttributes.addFlashAttribute("sucesso", "Usuário deletado com sucesso!");
+       }catch (DataIntegrityViolationException e){
+           redirectAttributes.addFlashAttribute("erro", "Não foi possível excluir o usuário. Ele está vinculado a uma turma, projeto ou outro registro no sistema.");
+       }catch (Exception e ){
+           redirectAttributes.addFlashAttribute("erro", "Ocorreu um erro inesperado ao tentar excluir o usuário.");
+       }
         return "redirect:/usuarios";
     }
 }
