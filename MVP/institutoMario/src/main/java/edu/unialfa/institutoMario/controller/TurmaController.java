@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @AllArgsConstructor
@@ -39,8 +40,13 @@ public class TurmaController {
     }
 
     @GetMapping("/deletar/{id}")
-    public String deletar(@PathVariable Long id) {
-        turmaService.deletarPorId(id);
+    public String deletar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            turmaService.deletarPorId(id);
+            redirectAttributes.addFlashAttribute("mensagemSucesso", "Turma excluida com sucesso!");
+        }catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("mensagemErro", e.getMessage());
+        }
         return "redirect:/turmas";
     }
 
