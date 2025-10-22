@@ -11,10 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -113,5 +110,10 @@ public class UsuarioController {
            redirectAttributes.addFlashAttribute("erro", "Ocorreu um erro inesperado ao tentar excluir o usuário.");
        }
         return "redirect:/usuarios";
+    }
+
+    @ModelAttribute("usuarioLogado")
+    public Usuario getUsuarioLogado() {
+        return usuarioService.getUsuarioLogado();
     }
 }
