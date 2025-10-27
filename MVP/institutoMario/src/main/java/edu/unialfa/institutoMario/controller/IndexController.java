@@ -1,10 +1,7 @@
 package edu.unialfa.institutoMario.controller;
 
 import edu.unialfa.institutoMario.model.Evento;
-import edu.unialfa.institutoMario.service.AlunoService;
-import edu.unialfa.institutoMario.service.EventoService;
-import edu.unialfa.institutoMario.service.NotaService;
-import edu.unialfa.institutoMario.service.TurmaService;
+import edu.unialfa.institutoMario.service.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +18,7 @@ public class IndexController {
     private final AlunoService alunoService;
     private final NotaService notaService;
     private final EventoService eventoService;
+    private final UsuarioService usuarioService;
 
     @GetMapping("/")
     public String index(Model model) {
@@ -41,6 +39,7 @@ public class IndexController {
         model.addAttribute("mediaNotasGeral", mediaNotasGeral);
         model.addAttribute("mediaNotasPorTurma", mediaNotasPorTurma);
         model.addAttribute("proximosEventos", proximosEventos);
+        model.addAttribute("usuarioLogado",usuarioService.getUsuarioLogado());
 
         return "index";
     }

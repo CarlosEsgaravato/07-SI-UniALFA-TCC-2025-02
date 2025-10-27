@@ -22,12 +22,54 @@
     <div id='calendar'></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/fullcalendar.min.js}"></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('calendar');
         const isAdmin = /*[[${#authorization.expression('hasRole(''ADMIN'')')}]]*/ false;
+
+        const modalElement = document.getElementById('eventosDoDiaModal');
+        const modalTitle = document.getElementById('modalTitulo');
+        const modalBody = document.getElementById('modalCorpo');
+        const novoEventoBtn = document.getElementById('novoEventoBtn');
+        const eventosModal = new bootstrap.Modal(modalElement);
+
+        const eventDates = new Set();
+
+        function showEventsModalForDate(clickedDate) {
+            const dateStr = clickedDate.toISOString().split('T')[0];
+            const allEvents = calendar.getEvents();
+            const eventsOfTheDay = allEvents.filter(event => {
+                const eventDateStr = event.start.toISOString().split('T')[0];
+                return eventDateStr === dateStr;
+            });
+
+            if (isAdmin) {
+                novoEventoBtn.href = `/eventos/novo?data=${dateStr}`;
+            }
+
+            if (eventsOfTheDay.length > 0) {
+                const dataFormatada = clickedDate.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                modalTitle.textContent = 'Eventos para ' + dataFormatada;
+
+                let htmlContent = '<ul class="list-group list-group-flush">';
+                eventsOfTheDay.forEach(event => {
+                    const hora = event.start.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    htmlContent += `<li class="list-group-item"><strong>${hora} - ${event.title}</strong><br>`;
+                    if (event.extendedProps.local) htmlContent += `<small class="text-muted">Local: ${event.extendedProps.local}</small><br>`;
+                    if (event.extendedProps.observacao) htmlContent += `<small class="text-muted">Obs: ${event.extendedProps.observacao}</small>`;
+                    htmlContent += `</li>`;
+                });
+                htmlContent += '</ul>';
+                modalBody.innerHTML = htmlContent;
+
+                eventosModal.show();
+            } else if (isAdmin) {
+                window.location.href = `/eventos/novo?data=${dateStr}`;
+            }
+        }
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
@@ -39,11 +81,41 @@
             },
             buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana' },
             events: '/eventos/dados-calendario',
+            height: 800,
+            dayMaxEvents: 3,
+            moreLinkClick: function(info) {
+                showEventsModalForDate(info.date);
+                return false;
+            },
+            eventsSet: function(events) {
+                eventDates.clear();
+                events.forEach(event => {
+                    const dateStr = event.start.toISOString().split('T')[0];
+                    eventDates.add(dateStr);
+                });
+                calendar.render();
+            },
+            dayCellDidMount: function(info) {
+                const dateStr = info.date.toISOString().split('T')[0];
+                if (eventDates.has(dateStr)) {
+                    info.el.classList.add('day-with-events');
+                }
+            },
             eventDataTransform: function(eventData) {
+                const eventDate = new Date(eventData.data);
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                const classList = [];
+
+                if (eventDate < now) {
+                    classList.push('evento-passado');
+                }
+
                 return {
                     id: eventData.id,
                     title: eventData.nomeEvento,
                     start: eventData.data,
+                    classNames: classList,
                     extendedProps: {
                         local: eventData.local,
                         observacao: eventData.observacao
@@ -51,51 +123,82 @@
                 };
             },
             dateClick: function(info) {
-                if (isAdmin) {
-                    window.location.href = `/eventos/novo?data=${info.dateStr}`;
-                }
+                showEventsModalForDate(info.date);
             },
+
             eventDidMount: function(info) {
                 if (isAdmin) {
                     const eventId = info.event.id;
-                    const editUrl = `/eventos/editar/${eventId}`;
-                    const deleteUrl = `/eventos/deletar/${eventId}`;
-                    const confirmMsg = 'Deseja realmente excluir este evento?';
                     const buttonContainer = document.createElement('div');
                     buttonContainer.className = 'fc-event-buttons';
-                    buttonContainer.innerHTML = `
-                        <a href="${editUrl}" class="btn btn-warning btn-sm py-0 px-1" title="Editar"><i class="bi bi-pencil-square"></i></a>
-                        <a href="${deleteUrl}" class="btn btn-danger btn-sm py-0 px-1" title="Excluir" onclick="return confirm('${confirmMsg}');"><i class="bi bi-trash-fill"></i></a>
-                    `;
+
+                    const editLink = document.createElement('a');
+                    editLink.href = `/eventos/editar/${eventId}`;
+                    editLink.className = 'btn btn-warning btn-sm py-0 px-1';
+                    editLink.title = 'Editar';
+                    editLink.innerHTML = '<i class="bi bi-pencil-square"></i>';
+                    buttonContainer.appendChild(editLink);
+
+                    const deleteLink = document.createElement('a');
+                    deleteLink.href = `/eventos/deletar/${eventId}`;
+                    deleteLink.className = 'btn btn-danger btn-sm py-0 px-1 ms-1'; // Adicionado ms-1 para espaçamento
+                    deleteLink.title = 'Excluir';
+                    deleteLink.innerHTML = '<i class="bi bi-trash-fill"></i>';
+
+                    deleteLink.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        if (confirm('Deseja realmente excluir este evento?')) {
+                            // Se o usuário confirmar, redireciona para a URL de exclusão
+                            window.location.href = deleteLink.href;
+                        }
+                    });
+
+                    buttonContainer.appendChild(deleteLink);
                     info.el.appendChild(buttonContainer);
                 }
             }
         });
-
         calendar.render();
     });
     /*]]>*/
 </script>
 
 <style>
-    .fc-event-buttons {
-        text-align: right;
-        position: absolute;
-        bottom: 2px;
-        right: 4px;
-        opacity: 0.8;
-    }
-    .fc-event-buttons a {
-        color: white !important;
-    }
-    .fc-daygrid-event:hover .fc-event-buttons {
-        opacity: 1;
-    }
-    .fc-daygrid-event {
-        position: relative;
-        padding-bottom: 28px !important;
-    }
+    .fc-daygrid-event, .fc-timegrid-event { position: relative; }
+    .fc-event-buttons { position: absolute; opacity: 0.8; }
+    .fc-event-buttons a { color: white !important; }
+    .fc-daygrid-event:hover .fc-event-buttons,
+    .fc-timegrid-event:hover .fc-event-buttons { opacity: 1; }
+    .fc-daygrid-event .fc-event-buttons { text-align: right; bottom: 2px; right: 4px; }
+    .fc-daygrid-event { padding-bottom: 28px !important; }
+    .fc-timegrid-event .fc-event-buttons { top: 2px; right: 4px; }
+    .fc-daygrid-event, .fc-h-event { background-color: #0d6efd; border-color: #0a58ca; color: white; padding-left: 5px; }
+    .day-with-events .fc-daygrid-day-frame { background-color: #e7f3ff; }
+    .fc-daygrid-event.evento-passado,
+    .fc-timegrid-event.evento-passado { background-color: #6c757d; border-color: #5a6268; opacity: 0.7; }
+    .fc-daygrid-event.evento-passado:hover,
+    .fc-timegrid-event.evento-passado:hover { opacity: 1; }
 </style>
+
+<div class="modal fade" id="eventosDoDiaModal" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitulo">Eventos do Dia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalCorpo"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <a id="novoEventoBtn" class="btn btn-primary" th:href="@{/eventos/novo}" sec:authorize="hasRole('ADMIN')">
+                    <i class="bi bi-plus-circle"></i> Novo Evento
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>

@@ -30,6 +30,17 @@ public class TurmaService {
     }
 
     public void deletarPorId(Long id) {
+        Turma turma = turmaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Turma não encontrada para o id :: " + id));
+        if (!turma.getAlunos().isEmpty()) {
+            throw new RuntimeException("Não é possível excluir. A turma possui alunos vinculados.");
+        }
+        if (!turma.getDisciplinas().isEmpty()) {
+            throw new RuntimeException("Não é possível excluir. A turma possui disciplinas vinculadas.");
+        }
+        if (!turma.getProjetos().isEmpty()) {
+            throw new RuntimeException("Não é possível excluir. A turma possui projetos vinculados.");
+        }
         turmaRepository.deleteById(id);
     }
 
