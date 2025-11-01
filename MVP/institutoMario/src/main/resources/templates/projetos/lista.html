@@ -30,7 +30,8 @@
         </a>
     </div>
 
-    <div th:if="${#lists.isEmpty(projetos)}" class="alert alert-info text-center">
+    <div th:if="${#lists.isEmpty(projetos)}" class="alert alert-secondary text-center py-3 border-0 shadow-sm">
+        <i class="bi bi-info-circle-fill me-2"></i>
         Nenhum projeto cadastrado.
     </div>
 

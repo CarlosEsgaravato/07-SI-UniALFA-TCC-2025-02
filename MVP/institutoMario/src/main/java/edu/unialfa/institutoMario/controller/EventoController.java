@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -99,5 +100,14 @@ public class EventoController {
     public String deletarEvento(@PathVariable Long id) {
         eventoService.deletarPorId(id);
         return "redirect:/eventos";
+    }
+
+    @GetMapping("/verificarHorario")
+    @ResponseBody
+    public boolean verificarHorarioExistente(@RequestParam("dataHora")
+                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataHora,
+                                             @RequestParam(value = "idEvento", required = false) Long idEvento) {
+
+        return eventoService.existeEventoNoHorario(dataHora, idEvento);
     }
 }
