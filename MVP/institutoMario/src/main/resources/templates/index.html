@@ -5,14 +5,12 @@
     <title>Instituto Mário Gazin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap e ícones -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
-<!-- Sidebar (Mantido com as autorizações originais) -->
 <div class="sidebar" th:fragment="sidebar">
     <div class="text-center py-4">
         <img th:src="@{/images/logoMario.png}" alt="Instituto Mário Gazin" class="sidebar-logo">
@@ -31,16 +29,25 @@
     </a>
 </div>
 
-<!-- Conteúdo principal -->
 <div class="main-content">
     <div class="container-fluid">
+
         <div class="row mb-4 border-bottom pb-3">
             <div class="col-12 d-flex justify-content-between align-items-center">
                 <h1 class="m-0">Dashboard Inicial</h1>
-                <small class="text-muted">Instituto Mário Gazin</small>
+
+                <div th:if="${usuarioLogado != null}" class="d-flex align-items-center">
+                    <i class="bi bi-person-circle fs-4 me-2"></i>
+                    <div>
+                        <div class="fw-bold" th:text="${usuarioLogado.nome}">
+                        </div>
+
+                        <small class="text-muted" th:text="${usuarioLogado.tipoUsuario?.descricao}">
+                        </small>
+                    </div>
+                </div>
             </div>
         </div>
-
         <div class="row g-4">
 
             <div class="col-lg-4">
