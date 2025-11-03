@@ -29,6 +29,10 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - UPLOAD_DIR=/app/uploads
+    volumes:
+      - uploads_data:/app/uploads
+
 
 volumes:
   mysql-data:
+  uploads_data:

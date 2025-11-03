@@ -45,10 +45,10 @@
       <input class="form-control" type="file" id="imagemFile" name="imagemFile" accept="image/png, image/jpeg, image/jpg">
     </div>
 
-    <div class="mb-3" th:if="${evento.id != null and evento.imagemUrl != null}">
-      <label class="form-label">Imagem Atual:</label><br>
-      <img th:src="@{/uploads/{filename}(filename=${evento.imagemUrl})}" alt="Imagem do Evento" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-    </div>
+      <div class="mb-3" th:if="${evento.id != null and evento.imagemUrl != null}">
+          <label class="form-label">Imagem Atual: *Faça upload de uma nova imagem caso deseje substituir a atual*</label><br>
+          <img th:src="@{/uploads/{filename}(filename=${evento.imagemUrl})}" alt="Imagem do Evento" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+      </div>
 
     <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Salvar</button>
     <a th:href="@{/eventos}" class="btn btn-secondary ms-2">Cancelar</a>

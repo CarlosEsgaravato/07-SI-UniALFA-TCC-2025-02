@@ -75,7 +75,9 @@
                         <div class="modal-body">
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item" th:each="doc : ${projeto.documentos}">
-                                    <a th:href="@{'/uploads/' + ${doc.urlArquivo}}" target="_blank" class="text-decoration-none">
+                                    <a th:href="@{/uploads/{filename}(filename=${doc.urlArquivo})}"
+                                       target="_blank"
+                                       class="text-decoration-none">
                                         <i class="bi bi-file-earmark-arrow-down me-2"></i>
                                         <span th:text="${doc.nomeArquivo}"></span>
                                     </a>

@@ -1,4 +1,25 @@
-/* Layout Login */
+/*
+ * =========================================
+ * Variáveis e Reset
+ * =========================================
+ */
+:root {
+    /* MANTÉM sua largura original de 260px */
+    --sidebar-width: 260px;
+}
+
+body {
+    /* Define a fonte padrão para o corpo, caso não esteja definida em outro lugar */
+    font-family: 'Arial', sans-serif;
+    /* Evita scroll horizontal no mobile quando o menu está fechado */
+    overflow-x: hidden;
+}
+
+/*
+ * =========================================
+ * Layout Login (Mantido)
+ * =========================================
+ */
 .login-body {
     background: linear-gradient(135deg, #f5f9ff, #ffffff);
 }
@@ -16,10 +37,14 @@
     border-left: 4px solid #004aad;
 }
 
-/* Sidebar */
+/*
+ * =========================================
+ * Sidebar (Adaptado para Responsividade e Botão Interno)
+ * =========================================
+ */
 .sidebar {
     height: 100vh;
-    width: 260px;
+    width: var(--sidebar-width);
     position: fixed;
     top: 0;
     left: 0;
@@ -27,10 +52,39 @@
     color: white;
     padding-top: 20px;
 
-    /* Fixar layout em coluna */
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Sombra sutil para destacar */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+
+    /* ESSENCIAL: Adiciona transição para animação do toggle */
+    transition: transform 0.3s ease;
+    z-index: 1050; /* Garante que fique acima de todo o conteúdo */
+}
+
+/* Estilo para o botão de toggle DENTRO da sidebar (Para fechar o menu no mobile) */
+.sidebar-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    /* Esconder por padrão, será mostrado apenas no mobile pelo media query */
+    display: none;
+    color: white;
+    background: none;
+    border: none;
+    padding: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+    z-index: 1060;
+}
+
+.sidebar-toggle:hover {
+    color: #ff9999;
+}
+
+/* Estado Colapsado: Usado pelo JS para mover a sidebar para fora da tela */
+.sidebar.collapsed {
+    transform: translateX(-100%);
 }
 
 .sidebar-logo {
@@ -49,19 +103,18 @@
 
 .sidebar a:hover {
     background-color: #003080;
-    padding-left: 25px; /* Efeito sutil de movimento */
+    padding-left: 25px;
 }
 
 .sidebar a.active {
     background-color: #003080;
     font-weight: 600;
-    border-left: 4px solid #ffffff; /* Linha de destaque para o ativo */
+    border-left: 4px solid #ffffff;
 }
 
-/* Estilo especial para o botão Sair */
 .sidebar a.logout {
     margin-top: auto;
-    color: #ff9999;     /* vermelho claro */
+    color: #ff9999;
     font-weight: 600;
 }
 .sidebar a.logout:hover {
@@ -69,44 +122,59 @@
     color: #ff0000;
 }
 
-/* Conteúdo principal */
+/*
+ * =========================================
+ * Conteúdo Principal (Adaptado para Responsividade)
+ * =========================================
+ */
 .main-content {
-    margin-left: 260px;
+    margin-left: var(--sidebar-width); /* Offset padrão para desktop */
     padding: 30px;
-    background-color: #f7f9fc; /* Fundo suave */
+    background-color: #f7f9fc;
     min-height: 100vh;
+    /* ESSENCIAL: Adiciona transição para animação do toggle */
+    transition: margin-left 0.3s ease;
 }
 
-/* ===== Dashboards / Cards do index ===== */
+/* No desktop, se o sidebar estiver colapsado (apenas para simular o estado), o main-content vai para a esquerda */
+.main-content.expanded {
+    margin-left: 0;
+}
+
+
+/*
+ * =========================================
+ * Dashboards / Cards (Mantido)
+ * =========================================
+ */
 .dashboard-card {
-    border-radius: 12px; /* Cantos mais arredondados */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06); /* Sombra mais destacada */
-    border: none; /* Remove a borda padrão do bootstrap */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    border: none;
     transition: transform .2s ease, box-shadow .2s ease;
     background-color: #ffffff;
 }
 .dashboard-card:hover {
-    transform: translateY(-5px); /* Movimento mais pronunciado */
+    transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
 .dashboard-icon {
-    font-size: 2.8rem; /* Ícone maior */
+    font-size: 2.8rem;
     color: #004aad;
-    background: rgba(0,74,173,0.12); /* Fundo do ícone mais visível */
-    padding: 15px; /* Padding maior */
+    background: rgba(0,74,173,0.12);
+    padding: 15px;
     border-radius: 12px;
     display: inline-block;
-    min-width: 70px; /* Garante que o ícone mantenha um tamanho mínimo */
+    min-width: 70px;
     text-align: center;
 }
 
-.h3 { /* Estilo para os números principais (turmasCount, etc) */
+.h3 {
     font-weight: 700;
     color: #333;
 }
 
-/* Card da lista de médias por turma */
 .dashboard-table-card {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -121,24 +189,60 @@
     color: #004aad;
 }
 
-/* Sidebox eventos */
 .sidebox-card {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     border: 1px solid #e0e4eb;
 }
 
-/* melhorar visual das list-group-items dentro do sidebox */
 .sidebox-card .list-group-item {
     padding-top: .8rem;
     padding-bottom: .8rem;
     border-color: #f0f4f8;
 }
 
-/* responsividade: ajustes leves */
-@media (max-width: 991px) {
-    .dashboard-icon { font-size: 2rem; padding: 12px; }
-    .h3 { font-size: 1.5rem; }
-    .main-content { margin-left: 0; padding: 15px; }
-    .sidebar { display: none; } /* Em telas pequenas, a sidebar deve ser ativada por um botão (toggle) */
+/*
+ * =========================================
+ * Media Queries (Responsividade)
+ * =========================================
+ */
+
+/* Desktop (Telas grandes: 992px e acima) */
+@media (min-width: 992px) {
+    /* Garante que o sidebar esteja visível por padrão no desktop */
+    .sidebar:not(.collapsed) {
+        transform: translateX(0%);
+    }
+
+    /* O main-content usa o margin-left padrão (260px) */
+    .main-content {
+        margin-left: var(--sidebar-width);
+    }
+}
+
+/* Mobile (Telas pequenas: menos de 992px) */
+@media (max-width: 991.98px) {
+    /* A sidebar começa escondida fora da tela */
+    .sidebar {
+        transform: translateX(-100%);
+        box-shadow: 5px 0 5px rgba(0, 0, 0, 0.2); /* Sombra na lateral direita quando aberta */
+    }
+
+    /* O botão de toggle deve ser visível para fechar o menu no mobile */
+    .sidebar-toggle {
+        display: block;
+    }
+
+    /* Quando a sidebar está aberta no mobile, ela volta para a tela */
+    .sidebar:not(.collapsed) {
+        transform: translateX(0%);
+    }
+
+    /* O conteúdo principal sempre ocupa 100% da largura, e o margin-left é 0 */
+    .main-content {
+        margin-left: 0;
+        padding-left: 15px;
+        padding-right: 15px;
+        padding-top: 15px; /* Ajuste de padding superior para mobile */
+    }
 }

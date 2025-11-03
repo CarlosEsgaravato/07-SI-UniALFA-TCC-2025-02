@@ -46,7 +46,6 @@ public class EventoService {
         }
     }
 
-
     public List<Evento> buscarProximosEventos(int limite) {
 
         return repository.findByDataAfterOrderByDataAsc(
