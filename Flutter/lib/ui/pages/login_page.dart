@@ -6,7 +6,6 @@ import 'package:hackathonflutter/ui/widgets/campo_texto.dart';
 import 'package:hackathonflutter/ui/pages/home_page.dart';
 import 'package:hackathonflutter/ui/widgets/msg_alerta.dart';
 import 'package:hackathonflutter/ui/widgets/circulo_espera.dart';
-// import 'package:hackathonflutter/extensions/string_extension.dart'; // Removido, pois não é mais necessário para validação de email
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -17,7 +16,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _usernameController = TextEditingController(); // Alterado para username
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
   late AuthService _authService;
   bool _carregando = false;
@@ -30,16 +29,16 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    _usernameController.dispose(); // Dispor o novo controller
+    _usernameController.dispose();
     _senhaController.dispose();
     super.dispose();
   }
 
   Future<void> _fazerLogin() async {
-    final username = _usernameController.text.trim(); // Alterado para username
+    final username = _usernameController.text.trim();
     final senha = _senhaController.text.trim();
 
-    if (username.isEmpty || senha.isEmpty) { // Verificação para username
+    if (username.isEmpty || senha.isEmpty) {
       MsgAlerta.show(
         context: context,
         titulo: 'Campos Obrigatórios',
@@ -48,45 +47,43 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-
-
     setState(() {
       _carregando = true;
     });
 
     try {
-      final sucesso = await _authService.autenticar(username, senha); // Chamada com username
+      final String? erro = await _authService.autenticar(username, senha);
 
-      if (mounted) {
-        setState(() {
-          _carregando = false;
-        });
+      if (!mounted) return;
 
-        if (sucesso) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-        } else {
-          MsgAlerta.show(
-            context: context,
-            titulo: 'Erro de Login',
-            texto: 'Usuário ou senha inválidos. Tente novamente.',
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _carregando = false;
-        });
+      setState(() {
+        _carregando = false;
+      });
 
+      if (erro == null) {
+        // SUCESSO!
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } else {
+        // FALHA! Exibe o erro exato vindo do backend.
         MsgAlerta.show(
           context: context,
-          titulo: 'Erro',
-          texto: 'Ocorreu um erro inesperado. Tente novamente mais tarde. Erro: $e',
+          titulo: 'Erro de Login',
+          texto: erro,
         );
       }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _carregando = false;
+      });
+      MsgAlerta.show(
+        context: context,
+        titulo: 'Erro Inesperado',
+        texto: 'Ocorreu um erro. Tente novamente mais tarde. Erro: $e',
+      );
     }
   }
 
@@ -102,7 +99,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Ícone ou Logo
               Icon(
                 Icons.person_pin,
                 size: 100,
@@ -110,16 +106,14 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 48),
 
-              // Campo de Usuário
               CampoTexto(
-                controller: _usernameController, // Usando _usernameController
-                texto: 'Usuário', // Texto do label alterado
-                teclado: TextInputType.text, // Pode ser text, emailAddress, etc., dependendo do seu username
+                controller: _usernameController,
+                texto: 'Usuário',
+                teclado: TextInputType.text,
                 onChanged: (text) => setState(() {}),
               ),
               const SizedBox(height: 16),
 
-              // Campo de Senha
               CampoTexto(
                 controller: _senhaController,
                 texto: 'Senha',
@@ -128,7 +122,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 32),
 
-              // Botão de Login
               BotaoQuadrado(
                 clique: _fazerLogin,
                 texto: 'Entrar',
@@ -136,7 +129,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
 
-              // Texto ou Link para Recuperação de Senha (Opcional)
               TextButton(
                 onPressed: () {
                   MsgAlerta.show(

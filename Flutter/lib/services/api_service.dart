@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart'; // Para kDebugMode
 
 class ApiService {
 
-  final String _baseUrl = 'http://172.16.2.190:8080/api';
+  final String _baseUrl = 'http://192.168.0.102:8080/api';
 
   final AuthService _authService; // Injetar AuthService para obter o token
 

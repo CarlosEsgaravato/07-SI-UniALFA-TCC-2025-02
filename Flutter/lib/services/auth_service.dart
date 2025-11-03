@@ -1,17 +1,13 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart'; // Para o kDebugMode
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  // --- A MUDANÇA MAIS IMPORTANTE ---
-  // Usamos 10.0.2.2 para o emulador Android acessar o localhost do seu computador.
-  // Se estiver testando no Chrome (web), você pode voltar para 'localhost'.
   static final String _baseUrl = kIsWeb
       ? 'http://localhost:8080/api' // Para Web
       : 'http://10.0.2.2:8080/api'; // Para Android
 
-  // Chaves para salvar os dados no dispositivo
   static const String _keyToken = 'auth_token';
   static const String _keyLogado = 'user_logged_in';
   static const String _keyUserId = 'user_id';
@@ -21,8 +17,9 @@ class AuthService {
   static const String _keyUserTipo = 'user_tipo';
 
   /// Tenta autenticar o usuário na API com ID e senha.
-  /// Retorna `true` se o login for bem-sucedido, `false` caso contrário.
-  Future<bool> autenticar(String id, String password) async {
+  /// Retorna `null` se o login for bem-sucedido.
+  /// Retorna uma `String` com a mensagem de erro caso contrário.
+  Future<String?> autenticar(String id, String password) async {
     final url = Uri.parse('$_baseUrl/auth/login');
 
     try {
@@ -31,7 +28,6 @@ class AuthService {
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        // Envia o corpo da requisição no formato JSON esperado pela API
         body: jsonEncode(<String, String>{
           'id': id,
           'password': password,
@@ -39,36 +35,51 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        // Se a API retornar 200 OK, decodifica o JSON
+        // --- SUCESSO ---
         final Map<String, dynamic> responseData = jsonDecode(response.body);
-        // Salva os dados do usuário no dispositivo
+
+        // (A validação de "Professor" já foi feita no backend)
+
         await _salvarDadosUsuario(responseData);
         if (kDebugMode) {
-          print('Login bem-sucedido! Token: ${responseData['token']}');
+          print('Login bem-sucedido!');
         }
-        return true;
+        return null; // Retorna null para indicar sucesso
       } else {
-        // Se a API retornar um erro (ex: 401, 403)
-        if (kDebugMode) {
-          print('Falha na autenticação: ${response.statusCode} - ${response.body}');
+        // --- FALHA NA AUTENTICAÇÃO (EX: 401 ou 403) ---
+        String erro = 'Falha na autenticação. Tente novamente.';
+
+        if (response.body.isNotEmpty) {
+          try {
+            final Map<String, dynamic> errorData = jsonDecode(response.body);
+            if (errorData.containsKey('erro')) {
+              erro = errorData['erro']; // Pega a mensagem da API
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Erro ao decodificar JSON de erro: $e');
+            }
+          }
         }
-        return false;
+
+        if (kDebugMode) {
+          print('Falha na autenticação: ${response.statusCode} - $erro');
+        }
+        return erro; // Retorna a mensagem de erro para a tela
       }
     } catch (e) {
-      // Captura erros de rede (ex: servidor offline, sem conexão)
+      // --- ERRO DE CONEXÃO ---
       if (kDebugMode) {
         print('Erro de conexão ao tentar autenticar: $e');
       }
-      return false;
+      return 'Erro de conexão. Verifique sua internet e tente novamente.';
     }
   }
 
-  /// Salva os dados do usuário recebidos da API no SharedPreferences.
   Future<void> _salvarDadosUsuario(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyToken, data['token']);
     await prefs.setBool(_keyLogado, true);
-    // userId é um número, então usamos setInt
     await prefs.setInt(_keyUserId, data['userId']);
     await prefs.setString(_keyUsername, data['username']);
     await prefs.setString(_keyUserNome, data['nome']);
@@ -76,24 +87,29 @@ class AuthService {
     await prefs.setString(_keyUserTipo, data['tipo']);
   }
 
-  /// Realiza o logout do usuário, limpando todos os dados salvos.
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Um jeito mais simples de limpar tudo
+    await prefs.clear();
     if (kDebugMode) {
       print('Usuário deslogado, dados limpos.');
     }
   }
 
-  /// Verifica se o usuário já está logado.
   Future<bool> isLogado() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keyLogado) ?? false;
   }
 
-  /// Retorna o token de autenticação salvo, se existir.
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyToken);
   }
+
+  Future<String?> getTipoUsuario() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Retorna o 'tipo' (ex: "Administrador", "Professor")
+    // salvo durante o login
+    return prefs.getString(_keyUserTipo);
+  }
+
 }

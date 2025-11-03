@@ -7,7 +7,7 @@ import edu.unialfa.institutoMario.model.Questao;
 import edu.unialfa.institutoMario.model.RespostaAluno;
 import edu.unialfa.institutoMario.repository.QuestaoRepository;
 import edu.unialfa.institutoMario.repository.RespostaAlunoRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,56 +24,67 @@ public class RespostaAlunoService {
     public List<RespostaAluno> listarTodas() {
         return respostaAlunoRepository.findAll();
     }
-
     public RespostaAluno buscarPorId(Long id) {
         return respostaAlunoRepository.findById(id).orElse(null);
     }
-
     @Transactional
     public void salvar(RespostaAluno respostaAluno) {
         respostaAlunoRepository.save(respostaAluno);
     }
-
     public void deletarPorId(Long id) {
         respostaAlunoRepository.deleteById(id);
     }
 
     @Transactional
     public void processarRespostas(CorrecaoProvaRequest request) {
-        boolean jaRespondeu = respostaAlunoRepository.existsByProvaIdAndAlunoId(
-                request.getIdProva(),
-                request.getIdAluno()
-        );
+        Long idProva = request.getIdProva();
+        Long idAluno = request.getIdAluno();
 
+        Aluno alunoEntity = alunoService.buscarPorId(idAluno);
+
+        boolean jaRespondeu = respostaAlunoRepository.existsByProvaIdAndAlunoId(idProva, idAluno);
         if (jaRespondeu) {
-            throw new IllegalStateException("Esta prova já foi respondida por este aluno.");
+            System.out.println("Atualizando respostas do Aluno ID: " + idAluno + " para a Prova ID: " + idProva);
+            respostaAlunoRepository.deleteByProvaIdAndAlunoId(idProva, idAluno);
         }
 
-        Aluno alunoEntity = alunoService.buscarPorId(request.getIdAluno());
-        Long idProva = request.getIdProva();
 
         for (RespostaSimplesDTO respostaDto : request.getRespostas()) {
+            String numeroQuestaoStr = respostaDto.getNumeroQuestao(); // DTO envia String
+
             RespostaAluno respostaAluno = new RespostaAluno();
             respostaAluno.setAluno(alunoEntity);
 
-            Optional<Questao> questaoOpt = questaoRepository.findByProvaIdAndNumero(idProva, respostaDto.getNumeroQuestao());
+            Optional<Questao> questaoOpt = questaoRepository.findByProvaIdAndNumero(idProva, numeroQuestaoStr);
 
             if (questaoOpt.isPresent()) {
                 Questao questao = questaoOpt.get();
                 respostaAluno.setProva(questao.getProva());
-                respostaAluno.setNumeroQuestao(respostaDto.getNumeroQuestao());
+
+                respostaAluno.setNumeroQuestao(numeroQuestaoStr);
+
                 respostaAluno.setAlternativaEscolhida(respostaDto.getAlternativaEscolhida());
 
                 boolean correta = questao.getAlternativaCorreta().equalsIgnoreCase(respostaDto.getAlternativaEscolhida());
                 respostaAluno.setCorreta(correta);
 
                 respostaAlunoRepository.save(respostaAluno);
+            } else {
+                System.out.println("AVISO: Questão número " + numeroQuestaoStr + " não encontrada para a prova ID " + idProva);
             }
         }
     }
 
     public List<RespostaAluno> buscarPorAluno(Long alunoId) {
         return respostaAlunoRepository.findByAlunoId(alunoId);
+    }
+
+    public List<RespostaAluno> buscarPorAlunoEProva(Long alunoId, Long provaId) {
+        return respostaAlunoRepository.findByAlunoIdAndProvaId(alunoId, provaId);
+    }
+
+    public List<Long> buscarIdsAlunosPorProva(Long provaId) {
+        return respostaAlunoRepository.findAlunoIdsByProvaId(provaId);
     }
 
     public List<Long> buscarIdsDeProvasRespondidas(Long alunoId) {

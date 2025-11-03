@@ -5,8 +5,10 @@ import 'package:hackathonflutter/services/auth_service.dart';
 import 'package:hackathonflutter/services/api_service.dart';
 import 'package:hackathonflutter/services/aluno_service.dart';
 import 'package:hackathonflutter/services/avaliacao_service.dart';
-import 'package:hackathonflutter/services/ocr_service.dart'; // ADICIONAR ESTE IMPORT
+import 'package:hackathonflutter/services/ocr_service.dart';
 import 'package:hackathonflutter/ui/pages/splash_page.dart';
+import 'package:hackathonflutter/services/professor_service.dart';
+import 'package:hackathonflutter/services/disciplina_service.dart';
 
 
 void main() {
@@ -40,6 +42,12 @@ class MyApp extends StatelessWidget {
         Provider<OcrService>(
           create: (_) => OcrService(),
           dispose: (_, ocrService) => ocrService.dispose(), // Limpar recursos quando não precisar mais
+        ),
+        Provider<ProfessorService>(
+          create: (context) => ProfessorService(context.read<ApiService>()),
+        ),
+        Provider<DisciplinaService>(
+          create: (context) => DisciplinaService(context.read<ApiService>()),
         ),
 
       ],

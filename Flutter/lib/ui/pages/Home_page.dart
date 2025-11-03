@@ -3,25 +3,54 @@ import 'package:flutter/material.dart';
 import 'package:hackathonflutter/services/auth_service.dart';
 import 'package:hackathonflutter/ui/pages/listagem_page.dart';
 import 'package:hackathonflutter/ui/pages/login_page.dart';
-import 'package:hackathonflutter/screens/camera_screen.dart'; // Importe CameraScreen
-import 'package:hackathonflutter/ui/widgets/botao_quadrado.dart'; // Importe BotaoQuadrado
-import 'package:provider/provider.dart'; // Importar o pacote provider
+import 'package:hackathonflutter/screens/camera_screen.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  /**
+   * Método de navegação inteligente (COM A CORREÇÃO DO BUG)
+   */
+  Future<void> _navegarParaListagem(BuildContext context) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final String? tipoUsuario = await authService.getTipoUsuario();
+
+    print('DEBUG: O tipo de usuário salvo é: "$tipoUsuario"');
+
+    final ListagemModo modo;
+
+    // --- A CORREÇÃO IMPORTANTE ESTÁ AQUI ---
+    // O seu log mostra que o tipo é "ADMIN".
+    // Vamos verificar se a string "admin" (em minúsculas) CONTÉM "admin".
+    if (tipoUsuario?.toLowerCase().contains('admin') ?? false) {
+      modo = ListagemModo.Admin;
+    } else {
+      modo = ListagemModo.Professor;
+    }
+    // --- FIM DA CORREÇÃO ---
+
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ListagemPage(
+            modo: modo,
+            isViewingGabarito: false,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-
     final authService = Provider.of<AuthService>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Menu Principal'),
-        automaticallyImplyLeading: false, // Remove o botão de voltar padrão
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -30,82 +59,111 @@ class HomePage extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: screenWidth * 0.05, // 5% das bordas
-              vertical: screenHeight * 0.03, // 3% superior/inferior
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Adicione aqui uma imagem ou logo se desejar
-                SizedBox(height: screenHeight * 0.02),
-                Text(
-                  'Bem-vindo ao Sistema de Avaliação!',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  textAlign: TextAlign.center,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Bem-vindo!',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                SizedBox(height: screenHeight * 0.05),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Selecione uma opção para começar:',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 24),
 
-                // Botão para Preencher Gabarito
-                BotaoQuadrado(
-                  icone: Icons.assignment,
-                  texto: 'Preencher Gabarito',
-                  clique: () {
+              // --- NOVA UI EM GRELHA (GRID) ---
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 2, // Duas colunas
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  children: [
+                    // Botão 1
+                    _MenuCard(
+                      context: context,
+                      icon: Icons.assignment_turned_in_outlined,
+                      text: 'Corrigir Prova', // Texto atualizado
+                      onTap: () {
+                        _navegarParaListagem(context);
+                      },
+                    ),
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ListagemPage(isViewingGabarito: false),
-                      ),
-                    );
-                  },
+                    // Botão 2
+                    _MenuCard(
+                      context: context,
+                      icon: Icons.camera_alt_outlined,
+                      text: 'Escanear Gabarito',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CameraScreen()),
+                        );
+                      },
+                    ),
+
+                    // Pode adicionar mais cartões aqui
+                    // _MenuCard(
+                    //   context: context,
+                    //   icon: Icons.bar_chart_outlined,
+                    //   text: 'Relatórios',
+                    //   onTap: () { /* ... */ },
+                    // ),
+                  ],
                 ),
-                SizedBox(height: screenHeight * 0.03),
-
-                // NOVO BOTÃO: Visualizar Gabaritos
-                // BotaoQuadrado(
-                //   icone: Icons.check_circle_outline, // Ícone para gabarito correto
-                //   texto: 'Visualizar Gabaritos',
-                //   clique: () {
-                //     // Navega para a ListagemPage no modo de visualização de gabarito
-                //     Navigator.push(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (context) => const ListagemPage(isViewingGabarito: true),
-                //       ),
-                //     );
-                //   },
-                // ),
-                // SizedBox(height: screenHeight * 0.03), // Espaçamento
-                //
-                // Botão para Escanear Gabarito (se ainda for usado)
-                BotaoQuadrado(
-                  icone: Icons.camera_alt,
-                  texto: 'Escanear Gabarito',
-                  clique: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const CameraScreen()),
-                    );
-                  },
-                ),
-                SizedBox(height: screenHeight * 0.03), // Espaçamento
-
-                // Outros botões ou informações podem vir aqui
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
+  // --- WIDGET REUTILIZÁVEL PARA O CARTÃO DO MENU ---
+  Widget _MenuCard({
+    required BuildContext context,
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 50,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              text,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Método para confirmar o logout (sem alterações)
   void _confirmarLogout(BuildContext context, AuthService authService) {
+    // ... (O seu código de _confirmarLogout está perfeito)
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -145,7 +203,7 @@ class HomePage extends StatelessWidget {
               ),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
-                await authService.logout(); // Chama o logout do AuthService injetado
+                await authService.logout();
                 if (context.mounted) {
                   Navigator.pushReplacement(
                     context,

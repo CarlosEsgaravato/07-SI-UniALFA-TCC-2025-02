@@ -24,9 +24,30 @@ class AlunoService {
   // Busca alunos por turma da API
   Future<List<Aluno>> buscarAlunosPorTurma(int turmaId) async {
     try {
-      // Endpoint para buscar alunos por turma pode variar, aqui um exemplo
+      // Este endpoint retorna um OBJETO TurmaComAlunosDTO, não uma lista
       final responseData = await _apiService.get('turmas/$turmaId/alunos');
-      return (responseData as List).map((json) => Aluno.fromJson(json)).toList();
+
+      // 1. Verificamos se a resposta é um Map (o '_JsonMap')
+      if (responseData is Map<String, dynamic>) {
+
+        // 2. Acedemos à CHAVE 'alunos' dentro desse objeto
+        if (responseData.containsKey('alunos') && responseData['alunos'] is List) {
+
+          // 3. Extraímos a lista de dentro da chave 'alunos'
+          final List<dynamic> alunosList = responseData['alunos'];
+
+          // 4. Agora sim, mapeamos a lista
+          return alunosList.map((json) => Aluno.fromJson(json)).toList();
+        } else {
+          // A API respondeu com um objeto, mas sem a lista 'alunos'
+          print('Erro ao buscar alunos: chave "alunos" não encontrada na resposta.');
+          return [];
+        }
+      } else {
+        // A API não respondeu o que esperávamos
+        print('Erro ao buscar alunos: A resposta da API não foi um objeto Map.');
+        return [];
+      }
     } catch (e) {
       print('Erro ao buscar alunos por turma $turmaId: $e');
       return [];
