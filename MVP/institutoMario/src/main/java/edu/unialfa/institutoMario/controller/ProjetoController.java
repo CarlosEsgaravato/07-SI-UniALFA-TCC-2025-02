@@ -5,10 +5,12 @@ import edu.unialfa.institutoMario.model.Projetos;
 import edu.unialfa.institutoMario.model.Turma;
 import edu.unialfa.institutoMario.service.ProjetoService;
 import edu.unialfa.institutoMario.service.TurmaService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -61,11 +63,27 @@ public class ProjetoController {
         return "projetos/formulario";
     }
 
+    @GetMapping("/documento/deletar/{idDocumento}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String deletarDocumento(@PathVariable Long idDocumento) {
+        Long projetoId = projetoService.deletarDocumento(idDocumento, uploadDir);
+
+        return "redirect:/projetos/editar/" + projetoId;
+    }
+
 
     @PostMapping("/salvar")
     @PreAuthorize("hasRole('ADMIN')")
-    public String salvarProjeto(@ModelAttribute("projeto") Projetos projeto,
-                                @RequestParam("documentosFiles") List<MultipartFile> documentosFiles) {
+    public String salvarProjeto(@Valid @ModelAttribute("projeto") Projetos projeto,
+                                BindingResult result,
+                                @RequestParam("documentosFiles") List<MultipartFile> documentosFiles,
+                                Model model) {
+
+        if (result.hasErrors()) {
+            model.addAttribute("turmas", turmaService.listarTodas());
+            return "projetos/formulario";
+        }
+
 
         Projetos projetoParaSalvar;
 
@@ -79,7 +97,7 @@ public class ProjetoController {
         if (projeto.getId() != null) {
             projetoParaSalvar = projetoService.bucarPorId(projeto.getId());
             projetoParaSalvar.setNomeProjeto(projeto.getNomeProjeto());
-            projetoParaSalvar.setTurma(projeto.getTurma()); // Atualiza a turma
+            projetoParaSalvar.setTurma(projeto.getTurma());
         } else {
             projetoParaSalvar = projeto;
             projetoParaSalvar.setDocumentos(new ArrayList<>());
