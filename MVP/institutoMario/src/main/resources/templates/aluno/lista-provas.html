@@ -7,8 +7,13 @@
 <body>
 <div th:replace="index :: sidebar"></div>
 
-<div class="main-content">
+<div class="main-content" id="main-content">
     <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <button class="btn btn-primary d-block d-lg-none me-3" id="menu-open-toggle">
+            <i class="bi bi-list"></i>
+        </button>
+
         <h2>Provas Disponíveis</h2>
     </div>
 
@@ -42,5 +47,6 @@
     </table>
 
 </div>
+<script th:src="@{/js/sidebar-toggle.js}"></script>
 </body>
 </html>

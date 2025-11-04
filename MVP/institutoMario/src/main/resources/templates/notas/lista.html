@@ -7,7 +7,12 @@
 <body>
 <div th:replace="index :: sidebar"></div>
 
-<div class="main-content">
+<div class="main-content" id="main-content">
+
+    <button class="btn btn-primary d-block d-lg-none me-3" id="menu-open-toggle">
+        <i class="bi bi-list"></i>
+    </button>
+
     <h1 class="mb-4">Notas por Disciplina</h1>
 
     <div th:if="${mensagemErro}" class="alert alert-danger" role="alert">
@@ -52,5 +57,6 @@
 
     </div>
 </div>
+<script th:src="@{/js/sidebar-toggle.js}"></script>
 </body>
 </html>

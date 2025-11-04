@@ -12,12 +12,12 @@
 <body class="body-dashboard">
 
 <!--
-    SIDEBAR: Adicionamos a classe 'collapsed' como padrão para telas menores
-    e o botão de toggle para fechar o menu.
+    SIDEBAR: Fragmento que contém o menu lateral.
+    A classe 'collapsed' será gerenciada pelo JavaScript (sidebar-toggle.js) para responsividade.
 -->
 <div class="sidebar collapsed" th:fragment="sidebar">
 
-    <!-- NOVO: Botão de fechar (X), visível apenas no mobile (controlado pelo CSS) -->
+    <!-- Botão de fechar (X) dentro do menu, visível em telas pequenas -->
     <button class="sidebar-toggle" id="menu-close-toggle">
         <i class="bi bi-x-lg"></i>
     </button>
@@ -41,7 +41,7 @@
 </div>
 
 <!--
-    CONTEÚDO PRINCIPAL: Classe 'main-content' recebe o conteúdo da página.
+    CONTEÚDO PRINCIPAL: Classe 'main-content' com o botão de abrir o menu (hamburguer).
 -->
 <div class="main-content" id="main-content">
     <div class="container-fluid">
@@ -49,12 +49,11 @@
         <div class="row mb-4 border-bottom pb-3">
             <div class="col-12 d-flex justify-content-between align-items-center">
 
-                <!-- NOVO: Botão de abrir o menu lateral (hamburguer). Visível apenas no mobile (d-lg-none) -->
+                <!-- Botão de abrir o menu lateral (hamburguer). Visível APENAS em telas pequenas (d-lg-none) -->
                 <button class="btn btn-primary d-block d-lg-none me-3" id="menu-open-toggle">
                     <i class="bi bi-list"></i>
                 </button>
 
-                <!-- O H1 original é mantido sem sobreposição -->
                 <h1 class="m-0">Dashboard Inicial</h1>
 
                 <div th:if="${usuarioLogado != null}" class="d-flex align-items-center">
@@ -183,51 +182,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const sidebar = document.querySelector('.sidebar');
-        const mainContent = document.getElementById('main-content');
-        const menuOpenToggle = document.getElementById('menu-open-toggle');
-        const menuCloseToggle = document.getElementById('menu-close-toggle');
-
-        // Função para alternar o estado do menu
-        function toggleSidebar() {
-            sidebar.classList.toggle('collapsed');
-
-            // Em telas maiores, alternamos a margem do conteúdo principal
-            if (window.innerWidth >= 992) {
-                mainContent.classList.toggle('expanded');
-            }
-        }
-
-        // Listener para o botão de abrir (hamburguer, no main-content)
-        if (menuOpenToggle) {
-            menuOpenToggle.addEventListener('click', toggleSidebar);
-        }
-
-        // Listener para o botão de fechar (X, dentro do sidebar)
-        if (menuCloseToggle) {
-            menuCloseToggle.addEventListener('click', toggleSidebar);
-        }
-
-        // Inicializa o estado do menu corretamente para desktop
-        function handleResize() {
-            if (window.innerWidth >= 992) {
-                // No desktop, removemos a classe 'collapsed' para garantir que o menu esteja visível por padrão.
-                sidebar.classList.remove('collapsed');
-                mainContent.classList.remove('expanded');
-            } else {
-                // No mobile, garantimos que ele esteja colapsado inicialmente.
-                sidebar.classList.add('collapsed');
-                mainContent.classList.remove('expanded');
-            }
-        }
-
-        // Chama no carregamento e na mudança de tamanho da tela
-        handleResize();
-        window.addEventListener('resize', handleResize);
-    });
-</script>
+<!-- IMPORTANTE: Referência ao script externo para garantir que o menu funcione em todas as páginas -->
+<script th:src="@{/js/sidebar-toggle.js}"></script>
 
 </body>
 </html>

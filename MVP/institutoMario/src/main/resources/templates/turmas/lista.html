@@ -8,8 +8,13 @@
 
 <div th:replace="index :: sidebar"></div>
 
-<div class="main-content">
+<div class="main-content" id="main-content">
     <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <button class="btn btn-primary d-block d-lg-none me-3" id="menu-open-toggle">
+            <i class="bi bi-list"></i>
+        </button>
+
         <h2>Lista de Turmas</h2>
         <a class="btn btn-primary" th:href="@{/turmas/nova}">+ Nova Turma</a>
     </div>
@@ -50,6 +55,6 @@
         </tbody>
     </table>
 </div>
-
+<script th:src="@{/js/sidebar-toggle.js}"></script>
 </body>
 </html>
