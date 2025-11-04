@@ -1,9 +1,9 @@
 // lib/screens/result_screen.dart
 import 'package:flutter/material.dart';
-import 'package:hackathonflutter/services/aluno_service.dart';
-import 'package:hackathonflutter/services/avaliacao_service.dart';
-import 'package:hackathonflutter/models/aluno.dart';
-import 'package:hackathonflutter/models/prova.dart';
+// import 'package:hackathonflutter/services/aluno_service.dart'; // REMOVIDO
+// import 'package:hackathonflutter/services/avaliacao_service.dart'; // REMOVIDO
+// import 'package:hackathonflutter/models/aluno.dart'; // REMOVIDO
+// import 'package:hackathonflutter/models/prova.dart'; // REMOVIDO
 import 'package:hackathonflutter/ui/widgets/msg_alerta.dart';
 import 'package:hackathonflutter/ui/widgets/circulo_espera.dart';
 import 'package:provider/provider.dart';
@@ -18,342 +18,209 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-  late TextEditingController _alunoIdController;
-  late TextEditingController _provaIdController;
-  late List<Map<String, String>> _respostas;
-  late AlunoService _alunoService;
-  late AvaliacaoService _avaliacaoService;
+  // Controllers para os IDs (REMOVIDOS)
+  // late TextEditingController _alunoIdController;
+  // late TextEditingController _provaIdController;
 
-  Aluno? _alunoEncontrado; // Armazenar o objeto Aluno
-  Prova? _provaEncontrada; // Armazenar o objeto Prova
+  // Controllers para as Respostas
+  late Map<String, TextEditingController> _responseControllers;
+  late List<String> _questionOrder; // Para manter a ordem original
 
-  String _alunoNome = 'Buscando...';
-  String _provaNome = 'Buscando...';
+  // Serviços e estados de ID (REMOVIDOS)
+  // late AlunoService _alunoService;
+  // late AvaliacaoService _avaliacaoService;
+  // Aluno? _alunoEncontrado;
+  // Prova? _provaEncontrada;
+  // String _alunoNome = 'Buscando...';
+  // String _provaNome = 'Buscando...';
+
+  // _isLoading foi mantido para a lista de respostas
   bool _isLoading = false;
-  bool _isSaving = false; // Para controlar o estado de salvamento
 
   @override
   void initState() {
     super.initState();
-    _alunoService = Provider.of<AlunoService>(context, listen: false);
-    _avaliacaoService = Provider.of<AvaliacaoService>(context, listen: false);
+    // Serviços de ID (REMOVIDOS)
+    // _alunoService = Provider.of<AlunoService>(context, listen: false);
+    // _avaliacaoService = Provider.of<AvaliacaoService>(context, listen: false);
 
-    _alunoIdController = TextEditingController(text: widget.extractedData['alunoId']?.toString() ?? '');
-    _provaIdController = TextEditingController(text: widget.extractedData['provaId']?.toString() ?? '');
-    _respostas = List<Map<String, String>>.from(widget.extractedData['respostas'] ?? []);
+    // 1. Inicializa os controllers de ID (REMOVIDO)
+    // _alunoIdController = TextEditingController(text: widget.extractedData['alunoId']?.toString() ?? '');
+    // _provaIdController = TextEditingController(text: widget.extractedData['provaId']?.toString() ?? '');
 
-    _loadAlunoAndProvaDetails();
+    // 2. Inicializa os controllers das Respostas
+    _responseControllers = {};
+    _questionOrder = [];
+    final List<Map<String, String>> respostas = List<Map<String, String>>.from(widget.extractedData['respostas'] ?? []);
+
+    for (var resposta in respostas) {
+      final String questaoNum = resposta['questao'] ?? '';
+      final String questaoResp = resposta['resposta'] ?? '';
+      if (questaoNum.isNotEmpty) {
+        _questionOrder.add(questaoNum);
+        _responseControllers[questaoNum] = TextEditingController(text: questaoResp);
+      }
+    }
+
+    // 3. Carrega os detalhes (REMOVIDO)
+    // _loadAlunoAndProvaDetails();
   }
 
   @override
   void dispose() {
-    _alunoIdController.dispose();
-    _provaIdController.dispose();
+    // Limpa TODOS os controllers
+    // _alunoIdController.dispose(); // REMOVIDO
+    // _provaIdController.dispose(); // REMOVIDO
+    _responseControllers.forEach((_, controller) => controller.dispose());
     super.dispose();
   }
 
-  Future<void> _loadAlunoAndProvaDetails() async {
-    setState(() {
-      _isLoading = true;
-      _alunoNome = 'Buscando...';
-      _provaNome = 'Buscando...';
-    });
+  // --- Função _loadAlunoAndProvaDetails REMOVIDA ---
 
-    try {
-      final int? alunoId = int.tryParse(_alunoIdController.text);
-      final int? provaId = int.tryParse(_provaIdController.text);
-
-      if (alunoId != null) {
-        _alunoEncontrado = await _alunoService.buscarAlunoPorId(alunoId);
-        if (_alunoEncontrado != null) {
-          _alunoNome = _alunoEncontrado!.nome;
-        } else {
-          _alunoNome = 'Aluno não encontrado';
-          if (mounted) {
-            MsgAlerta.showError(context, 'Erro', 'Aluno com ID $alunoId não encontrado.');
-          }
-        }
-      } else {
-        _alunoNome = 'ID do Aluno inválido';
-        if (mounted) {
-          MsgAlerta.showWarning(context, 'Aviso', 'ID do Aluno não reconhecido ou vazio.');
-        }
-      }
-
-      if (provaId != null) {
-        _provaEncontrada = await _avaliacaoService.buscarProvaPorId(provaId);
-        if (_provaEncontrada != null) {
-          _provaNome = _provaEncontrada!.disciplinaNome;
-        } else {
-          _provaNome = 'Prova não encontrada';
-          if (mounted) {
-            MsgAlerta.showError(context, 'Erro', 'Prova com ID $provaId não encontrada.');
-          }
-        }
-      } else {
-        _provaNome = 'ID da Prova inválido';
-        if (mounted) {
-          MsgAlerta.showWarning(context, 'Aviso', 'ID da Prova não reconhecido ou vazio.');
-        }
-      }
-    } catch (e) {
-      _alunoNome = 'Erro ao buscar Aluno';
-      _provaNome = 'Erro ao buscar Prova';
-      if (mounted) {
-        MsgAlerta.showError(context, 'Erro de Busca', 'Falha ao buscar detalhes: $e');
-      }
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  // Método para salvar diretamente (similar ao _enviarRespostas da GabaritoPage)
-  Future<void> _salvarGabarito() async {
-    // Validar se aluno e prova foram encontrados
-    if (_alunoEncontrado == null) {
-      MsgAlerta.showWarning(context, 'Atenção', 'Selecione ou corrija o ID do Aluno antes de salvar.');
-      return;
-    }
-    if (_provaEncontrada == null) {
-      MsgAlerta.showWarning(context, 'Atenção', 'Selecione ou corrija o ID da Prova antes de salvar.');
-      return;
-    }
-
-    // Validar se há respostas
-    if (_respostas.isEmpty) {
-      MsgAlerta.showWarning(context, 'Atenção', 'Nenhuma resposta foi lida. Por favor, verifique o gabarito.');
-      return;
-    }
-
-    setState(() {
-      _isSaving = true;
-    });
-
-    try {
-      final response = await _avaliacaoService.enviarGabaritoAluno(
-        _alunoEncontrado!.id,
-        _provaEncontrada!.id,
-        _respostas,
-      );
-
-      if (response['status'] == 'success') {
-        if (mounted) {
-          MsgAlerta.showSuccess(
-              context,
-              'Sucesso',
-              response['message'] ?? 'Gabarito salvo com sucesso!'
-          );
-          // Aguardar um pouco para o usuário ver a mensagem
-          await Future.delayed(const Duration(seconds: 1));
-          if (mounted) {
-            Navigator.pop(context); // Volta para a tela anterior
-          }
-        }
-      } else {
-        if (mounted) {
-          MsgAlerta.showError(
-              context,
-              'Erro',
-              response['message'] ?? 'Falha ao salvar gabarito.'
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        MsgAlerta.showError(
-            context,
-            'Erro de Envio',
-            'Não foi possível salvar o gabarito: $e'
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
+  /// Constrói a lista de respostas ATUALIZADA a partir dos controllers
+  List<Map<String, String>> _buildUpdatedResponses() {
+    final List<Map<String, String>> updatedResponses = [];
+    for (var questaoNum in _questionOrder) {
+      final controller = _responseControllers[questaoNum];
+      if (controller != null) {
+        updatedResponses.add({
+          'questao': questaoNum,
+          'resposta': controller.text.toUpperCase(),
         });
       }
     }
+    return updatedResponses;
   }
 
-  // Método para confirmar e devolver os dados para preenchimento manual
+  // Devolve os dados corrigidos para a tela anterior (GabaritoPage)
   void _confirmarEDevolver() {
-    // Validar se aluno e prova foram encontrados
-    if (_alunoEncontrado == null) {
-      MsgAlerta.showWarning(context, 'Atenção', 'Selecione ou corrija o ID do Aluno antes de confirmar.');
-      return;
-    }
-    if (_provaEncontrada == null) {
-      MsgAlerta.showWarning(context, 'Atenção', 'Selecione ou corrija o ID da Prova antes de confirmar.');
-      return;
-    }
+    // Validação de ID REMOVIDA
+    // if (_alunoEncontrado == null || _provaEncontrada == null) {
+    //   MsgAlerta.showWarning(context, 'Atenção', 'Aluno ou Prova não validados. Verifique os IDs e clique em "Buscar".');
+    //   return;
+    // }
 
+    final respostasCorrigidas = _buildUpdatedResponses();
+
+    // RETORNA OS DADOS PARA A GABARITO_PAGE
     Navigator.pop(context, {
-      'aluno': _alunoEncontrado,
-      'prova': _provaEncontrada,
-      'respostas': _respostas,
+      // 'aluno': _alunoEncontrado, // REMOVIDO
+      // 'prova': _provaEncontrada, // REMOVIDO
+      'respostas': respostasCorrigidas, // Retorna APENAS os dados corrigidos
     });
   }
+
+  // --- Widget _buildIdRow REMOVIDO ---
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Confirmar Gabarito Lido'),
+        title: const Text('Confirmar Leitura OCR'),
+        // AJUSTE: Garante que o usuário não possa "voltar" sem confirmar
+        automaticallyImplyLeading: false,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              margin: const EdgeInsets.only(bottom: 16),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+
+          // --- Bloco de IDs REMOVIDO ---
+          // Card( ... )
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0), // Adicionado padding vertical
+            child: Text('Respostas Lidas (${_questionOrder.length}):', style: Theme.of(context).textTheme.titleMedium),
+          ),
+          const SizedBox(height: 10),
+
+          // Lista de Respostas
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CirculoEspera())
+                : _questionOrder.isEmpty
+                ? const Center(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Dados Lidos pelo OCR:', style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Text('Aluno ID: '),
-                        Expanded(
-                          child: TextField(
-                            controller: _alunoIdController,
-                            keyboardType: TextInputType.number,
-                            onChanged: (_) => _loadAlunoAndProvaDetails(), // Recarregar ao mudar ID
-                            decoration: const InputDecoration(
-                              hintText: 'Digite o ID do Aluno',
-                              border: OutlineInputBorder(),
-                              isDense: true,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            _alunoNome,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: _alunoNome.contains('não encontrado') || _alunoNome.contains('inválido')
-                                  ? Colors.red
-                                  : Colors.green,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Text('Prova ID: '),
-                        Expanded(
-                          child: TextField(
-                            controller: _provaIdController,
-                            keyboardType: TextInputType.number,
-                            onChanged: (_) => _loadAlunoAndProvaDetails(), // Recarregar ao mudar ID
-                            decoration: const InputDecoration(
-                              hintText: 'Digite o ID da Prova',
-                              border: OutlineInputBorder(),
-                              isDense: true,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            _provaNome,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: _provaNome.contains('não encontrada') || _provaNome.contains('inválido')
-                                  ? Colors.red
-                                  : Colors.green,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Nenhuma resposta foi lida pelo OCR. Verifique a iluminação e a qualidade da foto.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
-            ),
-            Text('Respostas Lidas:', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _respostas.length,
-                itemBuilder: (context, index) {
-                  final resposta = _respostas[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Text('Questão ${resposta['questao']}: '),
-                          Expanded(
-                            child: TextField(
-                              controller: TextEditingController(text: resposta['resposta']),
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _respostas[index]['resposta'] = newValue.toUpperCase();
-                                });
-                              },
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLength: 1,
-                              textCapitalization: TextCapitalization.characters,
+            )
+                : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              itemCount: _questionOrder.length,
+              itemBuilder: (context, index) {
+                final questaoNum = _questionOrder[index];
+                final controller = _responseControllers[questaoNum];
+
+                if (controller == null) return const SizedBox.shrink();
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Questão ${questaoNum.padLeft(2, '0')}:',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: controller, // Usa o controller correto
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              counterText: '',
                             ),
+                            textAlign: TextAlign.center,
+                            maxLength: 1,
+                            textCapitalization: TextCapitalization.characters,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 20),
-            // Botões de ação
-            _isSaving
+          ),
+
+          // Botões de Ação
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: _isLoading
                 ? const Center(child: CirculoEspera())
                 : Column(
               children: [
-                // Botão principal para salvar diretamente
+                // Botão "Confirmar e Voltar" agora é o botão principal
                 ElevatedButton.icon(
-                  onPressed: _isLoading || _isSaving ? null : _salvarGabarito,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Salvar Gabarito'),
+                  onPressed: _isLoading ? null : _confirmarEDevolver,
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Confirmar Dados e Voltar'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Botão secundário para preencher manualmente
-                OutlinedButton.icon(
-                  onPressed: _isLoading || _isSaving ? null : _confirmarEDevolver,
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Preencher Manualmente'),
-                  style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

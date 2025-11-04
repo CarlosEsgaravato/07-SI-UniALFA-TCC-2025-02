@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hackathonflutter/services/auth_service.dart';
 import 'package:hackathonflutter/ui/pages/listagem_page.dart';
 import 'package:hackathonflutter/ui/pages/login_page.dart';
-import 'package:hackathonflutter/screens/camera_screen.dart';
+// Removido: import 'package:hackathonflutter/screens/camera_screen.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
@@ -78,42 +78,33 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // --- NOVA UI EM GRELHA (GRID) ---
+              // --- AJUSTE DA UI ---
+              // Trocamos o GridView por um ListView para centralizar
+              // o único card restante.
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2, // Duas colunas
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                child: ListView(
                   children: [
                     // Botão 1
                     _MenuCard(
                       context: context,
                       icon: Icons.assignment_turned_in_outlined,
-                      text: 'Corrigir Prova', // Texto atualizado
+                      text: 'Corrigir Prova',
                       onTap: () {
                         _navegarParaListagem(context);
                       },
                     ),
 
-                    // Botão 2
-                    _MenuCard(
-                      context: context,
-                      icon: Icons.camera_alt_outlined,
-                      text: 'Escanear Gabarito',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const CameraScreen()),
-                        );
-                      },
-                    ),
-
-                    // Pode adicionar mais cartões aqui
+                    // Botão 2 (REMOVIDO)
                     // _MenuCard(
                     //   context: context,
-                    //   icon: Icons.bar_chart_outlined,
-                    //   text: 'Relatórios',
-                    //   onTap: () { /* ... */ },
+                    //   icon: Icons.camera_alt_outlined,
+                    //   text: 'Escanear Gabarito',
+                    //   onTap: () {
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(builder: (context) => const CameraScreen()),
+                    //     );
+                    //   },
                     // ),
                   ],
                 ),
@@ -138,24 +129,27 @@ class HomePage extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 50,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              text,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+        child: Padding( // Adicionado Padding
+          padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 50,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                text,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

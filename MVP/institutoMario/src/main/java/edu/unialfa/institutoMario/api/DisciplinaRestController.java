@@ -33,4 +33,3 @@ public class DisciplinaRestController {
         return ResponseEntity.ok(disciplinas);
     }
 }
-

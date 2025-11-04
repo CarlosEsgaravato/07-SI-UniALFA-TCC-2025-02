@@ -1,45 +1,81 @@
+// lib/services/ocr_service.dart
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image/image.dart' as img;
 import 'dart:io';
+import 'dart:math';
 
 class OcrService {
   final TextRecognizer _textRecognizer = TextRecognizer();
 
+  /// Processa o gabarito usando DETECÇÃO DE CÍRCULOS PREENCHIDOS
   Future<Map<String, dynamic>> processGabarito(String imagePath) async {
+    print('=== INICIANDO PROCESSAMENTO (ESTRATÉGIA DE TABELA) ===');
+
+    // 1. Carregar e processar a imagem
+    final imageFile = File(imagePath);
+    final bytes = await imageFile.readAsBytes();
+    img.Image? image = img.decodeImage(bytes);
+
+    if (image == null) {
+      throw Exception('Não foi possível decodificar a imagem');
+    }
+
+    // 2. Converter para escala de cinza
+    img.Image grayImage = img.grayscale(image);
+
+    // 3. OCR para encontrar textos
     final inputImage = InputImage.fromFilePath(imagePath);
     final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
 
-    print('=== ANÁLISE COMPLETA DO OCR ===');
-    for (TextBlock block in recognizedText.blocks) {
-      print('Block: ${block.text}');
-      print('Block bounds: ${block.boundingBox}');
-      for (TextLine line in block.lines) {
-        print('  Line: ${line.text}');
-        print('  Line bounds: ${line.boundingBox}');
-        for (TextElement element in line.elements) {
-          print('    Element: "${element.text}" - Bounds: ${element.boundingBox}');
-        }
-      }
-      print('---');
-    }
-
     Map<String, dynamic> extractedData = {
-      "alunoId": "",
-      "provaId": "",
       "respostas": [],
       "metadados": {
         "timestamp": DateTime.now().toIso8601String(),
-        "qualidade_ocr": 0.0
+        "metodo": "table_circle_detection",
+        "confianca_media": 0.0
       }
     };
 
-    // Coletar todos os elementos de texto com suas posições
-    List<Map<String, dynamic>> allElements = [];
+    // 4. Extrair elementos de texto
+    List<Map<String, dynamic>> allElements = _extractTextElements(recognizedText);
+
+    // 5. Encontrar região do gabarito (ainda útil)
+    Map<String, dynamic>? gabaritoRegion = _findGabaritoRegion(allElements, image);
+
+    if (gabaritoRegion == null) {
+      print('⚠️ Região do gabarito não encontrada.');
+      return extractedData;
+    }
+    print('✓ Região do gabarito encontrada');
+
+
+    // 7. DETECÇÃO DE CÍRCULOS (NOVA LÓGICA DE TABELA)
+    List<Map<String, String>> respostas = await _detectFilledCircles(
+        grayImage,
+        allElements,
+        gabaritoRegion
+    );
+
+    extractedData["respostas"] = respostas;
+    if (respostas.isNotEmpty) {
+      extractedData["metadados"]["confianca_media"] = 0.85;
+    }
+
+    print('=== RESULTADO FINAL ===');
+    print('Total de respostas: ${respostas.length}');
+    print('Método: ${extractedData["metadados"]["metodo"]}');
+
+    return extractedData;
+  }
+
+  /// Extrai elementos de texto com posições
+  List<Map<String, dynamic>> _extractTextElements(RecognizedText recognizedText) {
+    List<Map<String, dynamic>> elements = [];
 
     for (TextBlock block in recognizedText.blocks) {
       for (TextLine line in block.lines) {
         for (TextElement element in line.elements) {
-          allElements.add({
+          elements.add({
             'text': element.text.trim(),
             'bounds': element.boundingBox,
             'centerX': (element.boundingBox.left + element.boundingBox.right) / 2,
@@ -53,193 +89,177 @@ class OcrService {
       }
     }
 
-    // Ordenar elementos por posição vertical (Y) e depois horizontal (X)
-    allElements.sort((a, b) {
-      int yCompare = a['centerY'].compareTo(b['centerY']);
-      if (yCompare != 0) return yCompare;
-      return a['centerX'].compareTo(b['centerX']);
+    // Ordena de cima para baixo, depois da esquerda para a direita
+    elements.sort((a, b) {
+      int yCompare = (a['centerY'] as double).compareTo(b['centerY'] as double);
+      if (yCompare.abs() > 10) return yCompare; // Se for claramente outra linha
+      return (a['centerX'] as double).compareTo(b['centerX'] as double); // Mesma linha
     });
 
-    print('=== ELEMENTOS ORDENADOS ===');
-    for (var elem in allElements) {
-      print('Text: "${elem['text']}" - X: ${elem['centerX'].toStringAsFixed(1)}, Y: ${elem['centerY'].toStringAsFixed(1)}');
-    }
-
-    // === EXTRAIR ALUNO ID ===
-    String? alunoId = _extractFieldValue(allElements, 'aluno');
-    if (alunoId != null) {
-      extractedData["alunoId"] = alunoId;
-      print('Aluno ID encontrado: $alunoId');
-    }
-
-    // === EXTRAIR PROVA ID ===
-    String? provaId = _extractFieldValue(allElements, 'prova');
-    if (provaId != null) {
-      extractedData["provaId"] = provaId;
-      print('Prova ID encontrado: $provaId');
-    }
-
-    // === EXTRAIR RESPOSTAS ===
-    List<Map<String, String>> respostas = _extractAnswers(allElements);
-    extractedData["respostas"] = respostas;
-
-    print('=== RESULTADO FINAL ===');
-    print('Aluno ID: ${extractedData["alunoId"]}');
-    print('Prova ID: ${extractedData["provaId"]}');
-    print('Respostas: ${extractedData["respostas"]}');
-
-    return extractedData;
+    return elements;
   }
 
-  // Extrai o valor de um campo (ex: busca "Aluno" e pega o número próximo)
-  String? _extractFieldValue(List<Map<String, dynamic>> elements, String fieldName) {
-    // Procurar pelo nome do campo (case-insensitive)
-    for (int i = 0; i < elements.length; i++) {
-      String text = elements[i]['text'].toLowerCase();
+  /// Encontra a região do gabarito na imagem (sem alteração)
+  Map<String, dynamic>? _findGabaritoRegion(List<Map<String, dynamic>> elements, img.Image image) {
+    for (var element in elements) {
+      String text = element['text'].toUpperCase();
+      if (text.contains('GABARITO')) {
+        double top = element['bottom'] + 10;
+        double left = 50.0;
+        double right = image.width.toDouble() - 50;
+        double bottom = min(top + 450, image.height.toDouble() - 50); // Área de busca
 
-      if (text == fieldName.toLowerCase()) {
-        double fieldY = elements[i]['centerY'];
-        double fieldRight = elements[i]['right'];
-
-        // Procurar por números na mesma linha (±30 pixels) e à direita
-        for (int j = 0; j < elements.length; j++) {
-          if (i == j) continue;
-
-          String candidateText = elements[j]['text'];
-          double candidateY = elements[j]['centerY'];
-          double candidateLeft = elements[j]['left'];
-
-          // Verificar se é um número e está na posição correta
-          if (RegExp(r'^\d+$').hasMatch(candidateText)) {
-            bool sameRow = (candidateY - fieldY).abs() <= 30;
-            bool toTheRight = candidateLeft > fieldRight;
-
-            if (sameRow && toTheRight) {
-              return candidateText;
-            }
-          }
-        }
+        return {
+          'top': top,
+          'left': left,
+          'right': right,
+          'bottom': bottom,
+        };
       }
     }
     return null;
   }
 
-  // Extrai as respostas do gabarito
-  List<Map<String, String>> _extractAnswers(List<Map<String, dynamic>> elements) {
-    Map<int, String> answers = {};
+  /// ATUALIZADO: DETECÇÃO DE CÍRCULOS (ESTRATÉGIA DE TABELA)
+  Future<List<Map<String, String>>> _detectFilledCircles(
+      img.Image grayImage,
+      List<Map<String, dynamic>> elements,
+      Map<String, dynamic> gabaritoRegion
+      ) async {
+    print('\n=== DETECTANDO CÍRCULOS (ESTRATÉGIA TABELA HORIZONTAL) ===');
 
-    // Estratégia 1: Procurar padrões "número letra" em elementos adjacentes
-    for (int i = 0; i < elements.length - 1; i++) {
-      String currentText = elements[i]['text'];
-      String nextText = elements[i + 1]['text'];
+    List<Map<String, String>> respostas = [];
 
-      // Verificar se o elemento atual é um número e o próximo é uma letra
-      if (RegExp(r'^\d+$').hasMatch(currentText) &&
-          RegExp(r'^[A-Ea-e]$').hasMatch(nextText)) {
+    // 1. Encontrar números de questões E letras (A-E) na região
+    List<Map<String, dynamic>> questionNumbers = [];
+    List<Map<String, dynamic>> letters = [];
 
-        double currentY = elements[i]['centerY'];
-        double nextY = elements[i + 1]['centerY'];
-        double currentX = elements[i]['centerX'];
-        double nextX = elements[i + 1]['centerX'];
+    for (var element in elements) {
+      double centerY = element['centerY'];
+      if (centerY < gabaritoRegion['top']! || centerY > gabaritoRegion['bottom']!) continue;
 
-        // Verificar se estão na mesma linha (±20 pixels) e próximos horizontalmente
-        bool sameLine = (nextY - currentY).abs() <= 20;
-        bool closeHorizontally = (nextX - currentX).abs() <= 100;
+      String text = element['text'].toUpperCase().trim();
 
-        if (sameLine && closeHorizontally) {
-          int questionNum = int.parse(currentText);
-          String answer = nextText.toUpperCase();
-          answers[questionNum] = answer;
-          print('Resposta encontrada - Estratégia 1: $questionNum -> $answer');
+      // É um número de questão? (ex: "1", "2")
+      if (RegExp(r'^\d+$').hasMatch(text) && (int.tryParse(text) ?? 0) <= 100) {
+        questionNumbers.add({
+          'number': int.parse(text),
+          'centerX': element['centerX'],
+          'centerY': element['centerY'],
+          'bottom': element['bottom'],
+        });
+      }
+      // É uma letra de alternativa? (ex: "A", "B")
+      else if (RegExp(r'^[A-E]$').hasMatch(text)) {
+        letters.add({
+          'letter': text,
+          'centerX': element['centerX'],
+          'centerY': element['centerY'],
+          'bottom': element['bottom'],
+        });
+      }
+    }
+
+    // Ordenar números por Y (linha a linha)
+    questionNumbers.sort((a, b) => (a['centerY'] as double).compareTo(b['centerY'] as double));
+    print('Números de questões encontrados: ${questionNumbers.length}');
+    print('Letras de alternativa encontradas: ${letters.length}');
+
+    // 3. Processar cada linha de questão
+    for (var question in questionNumbers) {
+      int questionNum = question['number'];
+      double questionY = question['centerY'];
+      double questionX = question['centerX'];
+
+      print('\n📝 Questão $questionNum (Y: ${questionY.toStringAsFixed(1)})');
+
+      // 4. Encontrar as letras (A-E) nesta mesma linha
+      List<Map<String, dynamic>> lettersInRow = [];
+      for (var letter in letters) {
+        double letterY = letter['centerY'];
+        double letterX = letter['centerX'];
+        // Se a letra está na mesma linha (verticalmente próxima) E à direita do número
+        if ((letterY - questionY).abs() < 25 && letterX > questionX) {
+          lettersInRow.add(letter);
         }
       }
-    }
 
-    // Estratégia 2: Procurar padrões "número letra" na mesma linha de texto
-    for (var element in elements) {
-      String text = element['text'];
+      if (lettersInRow.length < 3) { // Se não achar pelo menos 3 (A,B,C), ignora
+        print('  ⚠️ Poucas letras (<3) encontradas na linha da questão.');
+        continue;
+      }
 
-      // Padrão: número seguido de letra (ex: "1A", "2C", "10B")
-      RegExp pattern = RegExp(r'(\d+)\s*([A-Ea-e])', caseSensitive: false);
-      Iterable<RegExpMatch> matches = pattern.allMatches(text);
+      // Ordenar letras da esquerda para direita
+      lettersInRow.sort((a, b) => (a['centerX'] as double).compareTo(b['centerX'] as double));
+      print('  Letras na linha: ${lettersInRow.map((l) => l['letter']).join(', ')}');
 
-      for (var match in matches) {
-        int questionNum = int.parse(match.group(1)!);
-        String answer = match.group(2)!.toUpperCase();
-        answers[questionNum] = answer;
-        print('Resposta encontrada - Estratégia 2: $questionNum -> $answer');
+      // 5. Analisar círculos abaixo de cada letra
+      String? markedLetter;
+      double maxDarkness = 0.35; // Limiar: 35% de pixels escuros
+
+      for (var letter in lettersInRow) {
+        double circleX = letter['centerX'];
+        // O PDF novo coloca o círculo 20-25px abaixo da letra
+        double circleY = letter['bottom'] + 20; // 20px abaixo da letra
+        double darkness = _analyzeCircleArea(grayImage, circleX, circleY, radius: 10); // Raio 10
+
+        print('  ${letter['letter']}: ${(darkness * 100).toStringAsFixed(1)}% escuro');
+
+        if (darkness > maxDarkness) {
+          maxDarkness = darkness;
+          markedLetter = letter['letter'];
+        }
+      }
+
+      if (markedLetter != null) {
+        respostas.add({
+          'questao': questionNum.toString(),
+          'resposta': markedLetter,
+        });
+        print('  ✓ Resposta: $markedLetter (${(maxDarkness * 100).toStringAsFixed(1)}%)');
+      } else {
+        print('  ✗ Nenhum círculo preenchido (máx: ${(maxDarkness * 100).toStringAsFixed(1)}%)');
       }
     }
 
-    // Estratégia 3: Análise espacial por linhas
-    if (answers.isEmpty) {
-      answers = _spatialAnswerExtraction(elements);
-    }
-
-    // Converter para lista ordenada
-    List<Map<String, String>> result = [];
-    var sortedKeys = answers.keys.toList()..sort();
-
-    for (int key in sortedKeys) {
-      result.add({
-        "questao": key.toString(),
-        "resposta": answers[key]!
-      });
-    }
-
-    return result;
+    return respostas;
   }
 
-  // Análise espacial mais sofisticada para extrair respostas
-  Map<int, String> _spatialAnswerExtraction(List<Map<String, dynamic>> elements) {
-    Map<int, String> answers = {};
 
-    // Agrupar elementos por linhas (Y similar)
-    List<List<Map<String, dynamic>>> lines = [];
-    const double lineThreshold = 25.0; // pixels de tolerância para considerar mesma linha
+  /// Analisa escuridão de uma área circular (sem alteração)
+  double _analyzeCircleArea(img.Image image, double centerX, double centerY, {double radius = 10}) {
+    int darkPixels = 0;
+    int totalPixels = 0;
 
-    for (var element in elements) {
-      bool addedToLine = false;
+    int cx = centerX.toInt();
+    int cy = centerY.toInt();
+    int r = radius.toInt();
 
-      for (var line in lines) {
-        if (line.isNotEmpty) {
-          double lineY = line.first['centerY'];
-          if ((element['centerY'] - lineY).abs() <= lineThreshold) {
-            line.add(element);
-            addedToLine = true;
-            break;
+    // Verificar limites
+    if (cx - r < 0 || cx + r >= image.width || cy - r < 0 || cy + r >= image.height) {
+      return 0.0;
+    }
+
+    // Analisar pixels no círculo
+    for (int y = cy - r; y <= cy + r; y++) {
+      for (int x = cx - r; x <= cx + r; x++) {
+        double dist = sqrt(pow(x - cx, 2) + pow(y - cy, 2));
+
+        if (dist <= r) {
+          totalPixels++;
+          img.Pixel pixel = image.getPixel(x, y);
+          int gray = pixel.r.toInt();
+          if (gray < 130) { // Limiar de pixel escuro
+            darkPixels++;
           }
         }
       }
-
-      if (!addedToLine) {
-        lines.add([element]);
-      }
     }
-
-    // Analisar cada linha
-    for (var line in lines) {
-      // Ordenar elementos da linha por posição X
-      line.sort((a, b) => a['centerX'].compareTo(b['centerX']));
-
-      // Procurar padrão número + letra
-      for (int i = 0; i < line.length - 1; i++) {
-        String currentText = line[i]['text'];
-        String nextText = line[i + 1]['text'];
-
-        if (RegExp(r'^\d+$').hasMatch(currentText) &&
-            RegExp(r'^[A-Ea-e]$').hasMatch(nextText)) {
-
-          int questionNum = int.parse(currentText);
-          String answer = nextText.toUpperCase();
-          answers[questionNum] = answer;
-          print('Resposta encontrada - Estratégia 3: $questionNum -> $answer');
-        }
-      }
-    }
-
-    return answers;
+    return totalPixels > 0 ? darkPixels / totalPixels : 0.0;
   }
+
+  // Método fallback (REMOVIDO, pois a nova estratégia é mais confiável)
+  // List<Map<String, String>> _extractAnswersTextBased(...) { ... }
 
   void dispose() {
     _textRecognizer.close();

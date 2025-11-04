@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   static final String _baseUrl = kIsWeb
       ? 'http://localhost:8080/api' // Para Web
-      : 'http://10.0.2.2:8080/api'; // Para Android
+      : 'http://192.168.0.102:8080/api'; // Para Android
 
   static const String _keyToken = 'auth_token';
   static const String _keyLogado = 'user_logged_in';
