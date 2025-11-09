@@ -5,10 +5,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct; // <-- 1. IMPORTE ISTO
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets; // <-- 2. IMPORTE ISTO
 import java.security.Key;
 import java.util.Date;
 
@@ -17,8 +19,14 @@ public class TokenService {
 
     @Value("${api.security.token.secret}")
     private String secret;
+    private Key key;
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(this.secret.getBytes(StandardCharsets.UTF_8));
+    }
+
 
     public String gerarToken(Authentication authentication) {
         Usuario usuarioLogado = (Usuario) authentication.getPrincipal();
