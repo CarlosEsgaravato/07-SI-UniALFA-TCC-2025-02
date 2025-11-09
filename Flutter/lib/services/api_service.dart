@@ -6,7 +6,9 @@ import 'package:flutter/foundation.dart'; // Para kDebugMode
 
 class ApiService {
 
-  final String _baseUrl = 'http://192.168.0.102:8080/api';
+  static final String _baseUrl = kIsWeb
+      ? 'http://localhost:8080/api' // Para Web
+      : 'http://192.168.0.102:8080/api'; // Para Android
 
   final AuthService _authService; // Injetar AuthService para obter o token
 

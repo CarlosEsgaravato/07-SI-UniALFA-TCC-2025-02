@@ -30,11 +30,12 @@ public class PdfService {
     private static final Font F_ALTERNATIVA = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.BLACK);
     private static final Font F_TITULO_SECAO = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.BLACK);
 
-    // --- FONTES AUMENTADAS PARA OCR ---
-    private static final Font F_GABARITO_NUM = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, Color.BLACK);
-    private static final Font F_GABARITO_LETRA = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.BLACK);
-    private static final Font F_GABARITO_HEADER = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.BLACK);
-    // --- FIM DAS FONTES AUMENTADAS ---
+    // --- FONTES COMPACTAS PARA GABARITO ---
+    private static final Font F_GABARITO_NUM = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, Color.BLACK);
+    private static final Font F_GABARITO_LETRA = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7, Color.BLACK);
+    private static final Font F_GABARITO_HEADER = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7, Color.BLACK);
+    private static final Font F_GABARITO_TITULO = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, Color.BLACK);
+    // --- FIM DAS FONTES COMPACTAS ---
 
     private static final Color COR_FUNDO_CLARO = new Color(250, 250, 250);
 
@@ -50,13 +51,11 @@ public class PdfService {
             document.add(new Paragraph(" ", FontFactory.getFont(FontFactory.HELVETICA, 6)));
 
             document.add(criarBlocoCabecalho(prova));
-            document.add(new Paragraph(" ", FontFactory.getFont(FontFactory.HELVETICA, 8)));
-
-            // (Bloco de ID já foi removido)
-
-            // Gera o gabarito com círculos vazios (NOVO LAYOUT)
-            document.add(criarBlocoGabaritoCirculos(prova.getQuestoes()));
             document.add(new Paragraph(" ", FontFactory.getFont(FontFactory.HELVETICA, 10)));
+
+            // Gera o gabarito com círculos vazios (estilo múltiplas colunas)
+            document.add(criarBlocoGabaritoCirculos(prova.getQuestoes()));
+            document.add(new Paragraph(" ", FontFactory.getFont(FontFactory.HELVETICA, 8)));
 
             LineSeparator separator = new LineSeparator(1f, 100f, Color.BLACK, Element.ALIGN_CENTER, -2);
             document.add(separator);
@@ -77,7 +76,6 @@ public class PdfService {
     }
 
     private PdfPTable criarCabecalhoComLogo(Prova prova) throws DocumentException {
-        // ... (Este método está correto, sem alterações)
         PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
         table.setWidths(new float[]{1f, 3f});
@@ -124,40 +122,119 @@ public class PdfService {
     }
 
     private PdfPTable criarBlocoCabecalho(Prova prova) throws DocumentException {
-        // ... (Este método está correto, sem alterações)
-        PdfPTable table = new PdfPTable(4);
+        PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
-        table.setWidths(new float[]{1.5f, 4f, 1f, 2f});
+        table.setWidths(new float[]{1.5f, 3f});
 
         String nomeTurma = (prova.getDisciplina() != null && prova.getDisciplina().getTurma() != null)
-                ? prova.getDisciplina().getTurma().getNome() : "____________________";
+                ? prova.getDisciplina().getTurma().getNome() : "";
 
-        table.addCell(criarCelulaCabecalho("Aluno(a):", F_CABECALHO_LABEL, Element.ALIGN_LEFT));
-        PdfPCell cellAlunoValor = criarCelulaCabecalho("________________________________________________________", F_CABECALHO_VALOR, Element.ALIGN_LEFT);
-        cellAlunoValor.setColspan(3);
-        table.addCell(cellAlunoValor);
+        // Linha 1: Acadêmico(a)
+        PdfPCell cellAcademicoLabel = new PdfPCell(new Phrase("Acadêmico(a):", F_CABECALHO_LABEL));
+        cellAcademicoLabel.setBorder(Rectangle.BOX);
+        cellAcademicoLabel.setBorderWidth(1.5f);
+        cellAcademicoLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cellAcademicoLabel.setPadding(5f);
+        table.addCell(cellAcademicoLabel);
 
-        table.addCell(criarCelulaCabecalho("Professor(a):", F_CABECALHO_LABEL, Element.ALIGN_LEFT));
-        table.addCell(criarCelulaCabecalho(prova.getDisciplina().getProfessor().getUsuario().getNome(), F_CABECALHO_VALOR, Element.ALIGN_LEFT));
-        table.addCell(criarCelulaCabecalho("Turma:", F_CABECALHO_LABEL, Element.ALIGN_LEFT));
-        table.addCell(criarCelulaCabecalho(nomeTurma, F_CABECALHO_VALOR, Element.ALIGN_LEFT));
+        PdfPCell cellAcademicoValor = new PdfPCell(new Phrase("", F_CABECALHO_VALOR));
+        cellAcademicoValor.setBorder(Rectangle.BOX);
+        cellAcademicoValor.setBorderWidth(1.5f);
+        cellAcademicoValor.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cellAcademicoValor.setPadding(5f);
+        cellAcademicoValor.setMinimumHeight(25f);
+        table.addCell(cellAcademicoValor);
 
-        table.addCell(criarCelulaCabecalho("Matéria:", F_CABECALHO_LABEL, Element.ALIGN_LEFT));
-        table.addCell(criarCelulaCabecalho(prova.getDisciplina().getNome(), F_CABECALHO_VALOR, Element.ALIGN_LEFT));
-        table.addCell(criarCelulaCabecalho("Data:", F_CABECALHO_LABEL, Element.ALIGN_LEFT));
-        table.addCell(criarCelulaCabecalho(prova.getData().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), F_CABECALHO_VALOR, Element.ALIGN_LEFT));
+        // Linha 2: Curso e Período
+        PdfPCell cellCursoLabel = new PdfPCell(new Phrase("Curso", F_CABECALHO_LABEL));
+        cellCursoLabel.setBorder(Rectangle.BOX);
+        cellCursoLabel.setBorderWidth(1.5f);
+        cellCursoLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cellCursoLabel.setPadding(5f);
+        table.addCell(cellCursoLabel);
 
-        table.addCell(criarCelulaCabecalho("Nota:", F_CABECALHO_LABEL, Element.ALIGN_LEFT));
-        table.addCell(criarCelulaCabecalho("________", F_CABECALHO_VALOR, Element.ALIGN_LEFT));
-        table.addCell(criarCelulaCabecalho("", F_CABECALHO_LABEL, Element.ALIGN_LEFT));
-        table.addCell(criarCelulaCabecalho("", F_CABECALHO_LABEL, Element.ALIGN_LEFT));
+        // Subcélula para Curso + Período
+        PdfPTable subTableCurso = new PdfPTable(2);
+        subTableCurso.setWidthPercentage(100);
+        subTableCurso.setWidths(new float[]{4f, 1f});
+
+        PdfPCell cellCursoValor = new PdfPCell(new Phrase(nomeTurma, F_CABECALHO_VALOR));
+        cellCursoValor.setBorder(Rectangle.NO_BORDER);
+        cellCursoValor.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cellCursoValor.setPadding(5f);
+        subTableCurso.addCell(cellCursoValor);
+
+        PdfPTable periodoTable = new PdfPTable(2);
+        periodoTable.setWidthPercentage(100);
+
+        PdfPCell cellPeriodoLabel = new PdfPCell(new Phrase("Período", F_CABECALHO_LABEL));
+        cellPeriodoLabel.setBorder(Rectangle.NO_BORDER);
+        cellPeriodoLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        cellPeriodoLabel.setPadding(2f);
+        periodoTable.addCell(cellPeriodoLabel);
+
+        PdfPCell cellPeriodoValor = new PdfPCell(new Phrase("", F_CABECALHO_VALOR));
+        cellPeriodoValor.setBorder(Rectangle.BOX);
+        cellPeriodoValor.setBorderWidth(1.5f);
+        cellPeriodoValor.setMinimumHeight(20f);
+        cellPeriodoValor.setPadding(5f);
+        periodoTable.addCell(cellPeriodoValor);
+
+        PdfPCell wrapperPeriodo = new PdfPCell(periodoTable);
+        wrapperPeriodo.setBorder(Rectangle.NO_BORDER);
+        subTableCurso.addCell(wrapperPeriodo);
+
+        PdfPCell cellCursoWrapper = new PdfPCell(subTableCurso);
+        cellCursoWrapper.setBorder(Rectangle.BOX);
+        cellCursoWrapper.setBorderWidth(1.5f);
+        cellCursoWrapper.setPadding(0);
+        table.addCell(cellCursoWrapper);
+
+        // Linha 3: Disciplina
+        PdfPCell cellDisciplinaLabel = new PdfPCell(new Phrase("Disciplina", F_CABECALHO_LABEL));
+        cellDisciplinaLabel.setBorder(Rectangle.BOX);
+        cellDisciplinaLabel.setBorderWidth(1.5f);
+        cellDisciplinaLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cellDisciplinaLabel.setPadding(5f);
+        table.addCell(cellDisciplinaLabel);
+
+        PdfPCell cellDisciplinaValor = new PdfPCell(new Phrase(prova.getDisciplina().getNome(), F_CABECALHO_VALOR));
+        cellDisciplinaValor.setBorder(Rectangle.BOX);
+        cellDisciplinaValor.setBorderWidth(1.5f);
+        cellDisciplinaValor.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cellDisciplinaValor.setPadding(5f);
+        table.addCell(cellDisciplinaValor);
+
+        // Linha 4: Professor
+        PdfPCell cellProfessorLabel = new PdfPCell(new Phrase("Professor", F_CABECALHO_LABEL));
+        cellProfessorLabel.setBorder(Rectangle.BOX);
+        cellProfessorLabel.setBorderWidth(1.5f);
+        cellProfessorLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cellProfessorLabel.setPadding(5f);
+        table.addCell(cellProfessorLabel);
+
+        PdfPCell cellProfessorValor = new PdfPCell(new Phrase(prova.getDisciplina().getProfessor().getUsuario().getNome(), F_CABECALHO_VALOR));
+        cellProfessorValor.setBorder(Rectangle.BOX);
+        cellProfessorValor.setBorderWidth(1.5f);
+        cellProfessorValor.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cellProfessorValor.setPadding(5f);
+        table.addCell(cellProfessorValor);
+
+        // Linha 5: Título da Atividade
+        PdfPCell cellTituloLabel = new PdfPCell(new Phrase(prova.getTitulo().toUpperCase(), F_TITULO));
+        cellTituloLabel.setBorder(Rectangle.BOX);
+        cellTituloLabel.setBorderWidth(1.5f);
+        cellTituloLabel.setColspan(2);
+        cellTituloLabel.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cellTituloLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cellTituloLabel.setPadding(8f);
+        table.addCell(cellTituloLabel);
 
         return table;
     }
 
     /**
      * Classe interna para desenhar o círculo vetorial (VAZIO)
-     * (Este método auxiliar é necessário para a nova tabela)
      */
     private static class CircleCellEvent implements PdfPCellEvent {
         private final float yPosition;
@@ -183,135 +260,104 @@ public class PdfService {
     }
 
     /**
-     * NOVO MÉTODO: Cria a célula do número da questão (ex: "1")
-     */
-    private PdfPCell criarCelulaQuestaoNum(String numeroQuestao) {
-        PdfPCell cell = new PdfPCell(new Phrase(numeroQuestao, F_GABARITO_NUM)); // 16pt Bold
-        cell.setBorder(Rectangle.BOX);
-        cell.setBorderWidth(1.5f);
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        cell.setPadding(8);
-        cell.setMinimumHeight(50f); // Altura boa para a linha
-        cell.setBackgroundColor(COR_FUNDO_CLARO); // Destaca a coluna do número
-        return cell;
-    }
-
-    /**
-     * NOVO MÉTODO: Cria a célula da alternativa (ex: "A" + Círculo)
-     */
-    private PdfPCell criarCelulaAlternativaComCirculo(String letra) {
-        PdfPCell cell = new PdfPCell();
-        cell.setBorder(Rectangle.BOX);
-        cell.setBorderWidth(1.5f);
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        cell.setPadding(8);
-        cell.setMinimumHeight(50f);
-
-        // Tabela de empilhamento (para Letra e Círculo)
-        PdfPTable stackingTable = new PdfPTable(1);
-        stackingTable.setWidthPercentage(100);
-
-        // 1. Célula da Letra
-        Paragraph pLetra = new Paragraph(letra, F_GABARITO_LETRA); // 12pt Bold
-        pLetra.setAlignment(Element.ALIGN_CENTER);
-        PdfPCell cellLetra = new PdfPCell(pLetra);
-        cellLetra.setBorder(Rectangle.NO_BORDER);
-        cellLetra.setHorizontalAlignment(Element.ALIGN_CENTER);
-        cellLetra.setMinimumHeight(14f);
-        stackingTable.addCell(cellLetra);
-
-        // 2. Célula do Círculo
-        PdfPCell cellCirculoVazio = new PdfPCell(new Phrase(" "));
-        cellCirculoVazio.setBorder(Rectangle.NO_BORDER);
-        cellCirculoVazio.setMinimumHeight(25f);
-        // (Posição Y: 20, Raio: 8) -> Um bom tamanho para OCR
-        CircleCellEvent circleEvent = new CircleCellEvent(20f, 8f);
-        cellCirculoVazio.setCellEvent(circleEvent);
-        stackingTable.addCell(cellCirculoVazio);
-
-        cell.addElement(stackingTable);
-        return cell;
-    }
-
-    /**
-     * MÉTODO ATUALIZADO: Gabarito com layout de tabela horizontal
+     * MÉTODO ATUALIZADO: Gabarito horizontal compacto (estilo múltiplas colunas)
      */
     private PdfPTable criarBlocoGabaritoCirculos(List<Questao> questoes) throws DocumentException {
-        PdfPTable wrapper = new PdfPTable(1); // Tabela principal (wrapper)
-        wrapper.setWidthPercentage(100);
+        // Determinar quantas questões cabem por coluna (10 questões por coluna)
+        int questoesPorColuna = 10;
+        int numColunas = (int) Math.ceil((double) questoes.size() / questoesPorColuna);
 
-        // Célula do Título (GABARITO DE RESPOSTAS)
-        PdfPCell titleCell = new PdfPCell(new Phrase("GABARITO DE RESPOSTAS", F_TITULO_SECAO));
-        titleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        titleCell.setBorder(Rectangle.BOX);
-        titleCell.setBorderWidth(2f);
-        titleCell.setPadding(8);
-        titleCell.setBackgroundColor(COR_FUNDO_CLARO);
-        wrapper.addCell(titleCell);
+        // Wrapper para centralizar
+        PdfPTable wrapperTable = new PdfPTable(1);
+        wrapperTable.setWidthPercentage(100);
+        wrapperTable.setHorizontalAlignment(Element.ALIGN_CENTER);
 
-        // Célula de Conteúdo (que segura a tabela do gabarito)
-        PdfPCell contentCell = new PdfPCell();
-        contentCell.setBorder(Rectangle.BOX);
-        contentCell.setBorderWidth(2f);
-        contentCell.setBorderWidthTop(0);
-        contentCell.setPadding(10);
+        // Tabela principal com múltiplas colunas de gabarito (reduzida para 75%)
+        PdfPTable mainTable = new PdfPTable(numColunas);
+        mainTable.setWidthPercentage(75);
+        mainTable.setHorizontalAlignment(Element.ALIGN_CENTER);
+        mainTable.setSpacingBefore(5);
+        mainTable.setSpacingAfter(5);
 
-        // --- A NOVA TABELA DE GABARITO (6 Colunas) ---
-        PdfPTable gabaritoTable = new PdfPTable(6);
-        gabaritoTable.setWidthPercentage(100);
-        // [Nº] [ A ] [ B ] [ C ] [ D ] [ E ]
-        gabaritoTable.setWidths(new float[]{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f});
+        // Criar cada coluna de gabarito
+        for (int col = 0; col < numColunas; col++) {
+            int inicio = col * questoesPorColuna;
+            int fim = Math.min(inicio + questoesPorColuna, questoes.size());
 
-        // --- CABEÇALHO DA TABELA ---
-        gabaritoTable.addCell(new PdfPCell(new Phrase("Nº", F_GABARITO_HEADER)));
-        gabaritoTable.addCell(new PdfPCell(new Phrase("A", F_GABARITO_HEADER)));
-        gabaritoTable.addCell(new PdfPCell(new Phrase("B", F_GABARITO_HEADER)));
-        gabaritoTable.addCell(new PdfPCell(new Phrase("C", F_GABARITO_HEADER)));
-        gabaritoTable.addCell(new PdfPCell(new Phrase("D", F_GABARITO_HEADER)));
-        gabaritoTable.addCell(new PdfPCell(new Phrase("E", F_GABARITO_HEADER)));
+            PdfPCell cellColuna = new PdfPCell();
+            cellColuna.setBorder(Rectangle.BOX);
+            cellColuna.setBorderWidth(1.5f);
+            cellColuna.setPadding(5);
 
-        // Alinhar e colorir o cabeçalho
-        for(PdfPCell c : gabaritoTable.getRow(0).getCells()) {
-            c.setHorizontalAlignment(Element.ALIGN_CENTER);
-            c.setBackgroundColor(COR_FUNDO_CLARO);
-            c.setPadding(5);
-        }
+            // Título do gabarito
+            Paragraph titulo = new Paragraph("GABARITO", F_GABARITO_TITULO);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            titulo.setSpacingAfter(5);
+            cellColuna.addElement(titulo);
 
-        // --- LINHAS DAS QUESTÕES ---
-        String[] letras = {"A", "B", "C", "D", "E"};
-        for (Questao questao : questoes) {
-            // Coluna 1: Número da Questão
-            gabaritoTable.addCell(criarCelulaQuestaoNum(questao.getNumero()));
+            // Tabela de gabarito (6 colunas: Nº + A B C D E)
+            PdfPTable gabaritoTable = new PdfPTable(6);
+            gabaritoTable.setWidthPercentage(100);
+            gabaritoTable.setWidths(new float[]{0.6f, 0.8f, 0.8f, 0.8f, 0.8f, 0.8f});
+            gabaritoTable.setSpacingBefore(5);
 
-            // Colunas 2-6: Alternativas (A-E)
-            for (String letra : letras) {
-                gabaritoTable.addCell(criarCelulaAlternativaComCirculo(letra));
+            // Cabeçalho
+            String[] headers = {"", "A", "B", "C", "D", "E"};
+            for (String header : headers) {
+                PdfPCell headerCell = new PdfPCell(new Phrase(header, F_GABARITO_HEADER));
+                headerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                headerCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                headerCell.setBorder(Rectangle.NO_BORDER);
+                headerCell.setPadding(1);
+                headerCell.setMinimumHeight(10f);
+                gabaritoTable.addCell(headerCell);
             }
+
+            // Linhas de questões
+            for (int i = inicio; i < fim; i++) {
+                Questao questao = questoes.get(i);
+
+                // Número da questão
+                PdfPCell cellNum = new PdfPCell(new Phrase(questao.getNumero(), F_GABARITO_NUM));
+                cellNum.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cellNum.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                cellNum.setBorder(Rectangle.BOX);
+                cellNum.setBorderWidth(0.5f);
+                cellNum.setPadding(1);
+                cellNum.setMinimumHeight(15f);
+                gabaritoTable.addCell(cellNum);
+
+                // Círculos para cada alternativa
+                String[] letras = {"A", "B", "C", "D", "E"};
+                for (String letra : letras) {
+                    PdfPCell cellCirculo = new PdfPCell();
+                    cellCirculo.setBorder(Rectangle.BOX);
+                    cellCirculo.setBorderWidth(0.5f);
+                    cellCirculo.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    cellCirculo.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                    cellCirculo.setPadding(1);
+                    cellCirculo.setMinimumHeight(15f);
+
+                    CircleCellEvent circleEvent = new CircleCellEvent(7.5f, 3.5f);
+                    cellCirculo.setCellEvent(circleEvent);
+                    gabaritoTable.addCell(cellCirculo);
+                }
+            }
+
+            cellColuna.addElement(gabaritoTable);
+            mainTable.addCell(cellColuna);
         }
-        // --- FIM DA NOVA TABELA ---
 
-        contentCell.addElement(gabaritoTable);
+        // Adicionar a mainTable dentro do wrapper para centralização
+        PdfPCell wrapperCell = new PdfPCell(mainTable);
+        wrapperCell.setBorder(Rectangle.NO_BORDER);
+        wrapperCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        wrapperTable.addCell(wrapperCell);
 
-        // Instrução (sem alteração)
-        Paragraph instrucao = new Paragraph(
-                "Preencha completely o círculo da alternativa correta.",
-                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, Font.ITALIC, Color.BLACK)
-        );
-        instrucao.setAlignment(Element.ALIGN_CENTER);
-        instrucao.setSpacingBefore(10);
-        contentCell.addElement(instrucao);
-
-        wrapper.addCell(contentCell);
-        return wrapper;
+        return wrapperTable;
     }
 
-
-    // --- MÉTODOS AUXILIARES (Sem alteração) ---
-
     private PdfPTable criarBlocoQuestao(Questao questao) {
-        // ... (Este método está correto, sem alterações)
         PdfPTable wrapper = new PdfPTable(1);
         wrapper.setWidthPercentage(100);
         wrapper.setKeepTogether(true);
@@ -334,7 +380,6 @@ public class PdfService {
     }
 
     private Paragraph criarParagrafoAlternativa(String texto) {
-        // ... (Este método está correto, sem alterações)
         Paragraph p = new Paragraph(texto, F_ALTERNATIVA);
         p.setIndentationLeft(15f);
         p.setSpacingAfter(4f);
@@ -342,7 +387,6 @@ public class PdfService {
     }
 
     private PdfPCell criarCelulaCabecalho(String texto, Font fonte, int alinhamento) {
-        // ... (Este método está correto, sem alterações)
         PdfPCell cell = new PdfPCell(new Phrase(texto, fonte));
         cell.setBorder(Rectangle.NO_BORDER);
         cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
