@@ -64,4 +64,12 @@ public class AlunoService {
         return repository.findById(alunoId)
                 .map(Aluno::getTurma);
     }
+
+    public List<Aluno> listarAlunosPorTurmaId(Long turmaId) {
+        if (turmaId == null || turmaId == 0) {
+            return java.util.Collections.emptyList();
+        }
+        return repository.findByTurmaId(turmaId);
+    }
+
 }
