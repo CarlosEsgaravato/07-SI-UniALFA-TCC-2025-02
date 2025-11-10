@@ -1,45 +1,75 @@
+/*
+ * =========================================
+ * Sidebar Toggle - SOLUÇÃO FOUC/FOIC
+ * =========================================
+ * ESTRATÉGIA: O JavaScript NÃO define o estado inicial.
+ * O CSS já cuida disso via media queries.
+ * O JS apenas gerencia as interações do usuário (cliques).
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.querySelector('.sidebar');
     const mainContent = document.getElementById('main-content');
     const menuOpenToggle = document.getElementById('menu-open-toggle');
     const menuCloseToggle = document.getElementById('menu-close-toggle');
 
-    // Função para alternar o estado do menu
-    function toggleSidebar() {
-        // Alterna a classe 'collapsed' na sidebar
-        sidebar.classList.toggle('collapsed');
-
-        // Em telas maiores (Desktop), alterna a margem do conteúdo principal
-        if (window.innerWidth >= 992) {
-            mainContent.classList.toggle('expanded');
-        }
-    }
-
-    // Listener para o botão de abrir (hamburguer, no main-content)
+    /**
+     * Listener para o botão de abrir (hamburguer no mobile)
+     * Remove a classe collapsed para mostrar a sidebar
+     */
     if (menuOpenToggle) {
-        menuOpenToggle.addEventListener('click', toggleSidebar);
-    }
-
-    // Listener para o botão de fechar (X, dentro do sidebar)
-    if (menuCloseToggle) {
-        menuCloseToggle.addEventListener('click', toggleSidebar);
-    }
-
-    // Inicializa o estado do menu corretamente para desktop/mobile no carregamento e redimensionamento
-    function handleResize() {
-        // Se a largura for de desktop (>= 992px)
-        if (window.innerWidth >= 992) {
-            // Garante que o menu está visível e o conteúdo principal tem o margin
+        menuOpenToggle.addEventListener('click', function() {
             sidebar.classList.remove('collapsed');
-            mainContent.classList.remove('expanded');
-        } else {
-            // Mobile: Garante que o menu está colapsado (escondido)
-            sidebar.classList.add('collapsed');
-            mainContent.classList.remove('expanded');
-        }
+        });
     }
 
-    // Chama no carregamento e na mudança de tamanho da tela
-    handleResize();
-    window.addEventListener('resize', handleResize);
+    /**
+     * Listener para o botão de fechar (X dentro da sidebar no mobile)
+     * Adiciona a classe collapsed para esconder a sidebar
+     */
+    if (menuCloseToggle) {
+        menuCloseToggle.addEventListener('click', function() {
+            sidebar.classList.add('collapsed');
+        });
+    }
+
+    /**
+     * NOVO: Fecha a sidebar automaticamente ao clicar em qualquer link no mobile
+     * Melhora a UX evitando que o usuário precise fechar manualmente
+     */
+    const sidebarLinks = sidebar.querySelectorAll('a');
+    sidebarLinks.forEach(function(link) {
+        link.addEventListener('click', function() {
+            // Fecha apenas no mobile
+            if (window.innerWidth < 992) {
+                sidebar.classList.add('collapsed');
+            }
+        });
+    });
+
+    /**
+     * Handler de resize para garantir consistência ao mudar de orientação/tamanho
+     * ATUALIZADO: Agora remove a classe 'collapsed' ao voltar para desktop
+     */
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        // Debounce para evitar múltiplas execuções durante o resize
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            const isDesktop = window.innerWidth >= 992;
+            const isMobile = window.innerWidth < 992;
+
+            if (isDesktop) {
+                // Desktop: Remove a classe collapsed para garantir que o menu apareça
+                sidebar.classList.remove('collapsed');
+                // Remove também a classe expanded do main-content
+                mainContent.classList.remove('expanded');
+            } else if (isMobile) {
+                // Mobile: Garante que o menu fecha ao redimensionar para mobile
+                sidebar.classList.add('collapsed');
+                // Remove a classe expanded (não usada no mobile)
+                mainContent.classList.remove('expanded');
+            }
+        }, 150); // 150ms de debounce
+    });
 });
