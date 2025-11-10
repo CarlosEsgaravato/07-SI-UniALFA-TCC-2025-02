@@ -4,14 +4,11 @@
  * =========================================
  */
 :root {
-    /* MANTÉM sua largura original de 260px */
     --sidebar-width: 260px;
 }
 
 body {
-    /* Define a fonte padrão para o corpo, caso não esteja definida em outro lugar */
     font-family: 'Arial', sans-serif;
-    /* Evita scroll horizontal no mobile quando o menu está fechado */
     overflow-x: hidden;
 }
 
@@ -39,8 +36,10 @@ body {
 
 /*
  * =========================================
- * Sidebar (Adaptado para Responsividade e Botão Interno)
+ * Sidebar - SOLUÇÃO FOUC/FOIC
  * =========================================
+ * ESTRATÉGIA: O CSS define o estado inicial correto para cada breakpoint.
+ * O JavaScript só atua nas interações do usuário (cliques), não no estado inicial.
  */
 .sidebar {
     height: 100vh;
@@ -56,18 +55,22 @@ body {
     flex-direction: column;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
 
-    /* ESSENCIAL: Adiciona transição para animação do toggle */
     transition: transform 0.3s ease;
-    z-index: 1050; /* Garante que fique acima de todo o conteúdo */
+    z-index: 1050;
+
+    /*
+     * DESKTOP (padrão): Sidebar visível por padrão
+     * Não usa transform aqui, deixa no fluxo normal
+     */
+    transform: translateX(0);
 }
 
-/* Estilo para o botão de toggle DENTRO da sidebar (Para fechar o menu no mobile) */
+/* Botão de toggle DENTRO da sidebar (fechar no mobile) */
 .sidebar-toggle {
     position: absolute;
     top: 10px;
     right: 10px;
-    /* Esconder por padrão, será mostrado apenas no mobile pelo media query */
-    display: none;
+    display: none; /* Escondido por padrão, mostrado apenas no mobile */
     color: white;
     background: none;
     border: none;
@@ -82,7 +85,10 @@ body {
     color: #ff9999;
 }
 
-/* Estado Colapsado: Usado pelo JS para mover a sidebar para fora da tela */
+/*
+ * Estado colapsado - usado APENAS quando o usuário clica para fechar
+ * Não é o estado inicial em nenhum breakpoint
+ */
 .sidebar.collapsed {
     transform: translateX(-100%);
 }
@@ -124,23 +130,22 @@ body {
 
 /*
  * =========================================
- * Conteúdo Principal (Adaptado para Responsividade)
+ * Conteúdo Principal
  * =========================================
  */
 .main-content {
-    margin-left: var(--sidebar-width); /* Offset padrão para desktop */
+    /* DESKTOP: offset padrão para acomodar a sidebar */
+    margin-left: var(--sidebar-width);
     padding: 30px;
     background-color: #f7f9fc;
     min-height: 100vh;
-    /* ESSENCIAL: Adiciona transição para animação do toggle */
     transition: margin-left 0.3s ease;
 }
 
-/* No desktop, se o sidebar estiver colapsado (apenas para simular o estado), o main-content vai para a esquerda */
+/* Classe usada quando sidebar é colapsada manualmente no desktop */
 .main-content.expanded {
     margin-left: 0;
 }
-
 
 /*
  * =========================================
@@ -203,46 +208,58 @@ body {
 
 /*
  * =========================================
- * Media Queries (Responsividade)
+ * Media Queries - MOBILE
  * =========================================
+ * MOBILE: Sidebar escondida por padrão, botão visível
  */
-
-/* Desktop (Telas grandes: 992px e acima) */
-@media (min-width: 992px) {
-    /* Garante que o sidebar esteja visível por padrão no desktop */
-    .sidebar:not(.collapsed) {
-        transform: translateX(0%);
-    }
-
-    /* O main-content usa o margin-left padrão (260px) */
-    .main-content {
-        margin-left: var(--sidebar-width);
-    }
-}
-
-/* Mobile (Telas pequenas: menos de 992px) */
 @media (max-width: 991.98px) {
-    /* A sidebar começa escondida fora da tela */
+    /*
+     * CRÍTICO: No mobile, a sidebar começa escondida via CSS puro
+     * Não depende de JavaScript para o estado inicial
+     */
     .sidebar {
         transform: translateX(-100%);
-        box-shadow: 5px 0 5px rgba(0, 0, 0, 0.2); /* Sombra na lateral direita quando aberta */
     }
 
-    /* O botão de toggle deve ser visível para fechar o menu no mobile */
+    /* Botão de fechar visível no mobile */
     .sidebar-toggle {
         display: block;
     }
 
-    /* Quando a sidebar está aberta no mobile, ela volta para a tela */
+    /*
+     * Quando o JS remove a classe 'collapsed' no mobile (após clique),
+     * a sidebar aparece
+     */
     .sidebar:not(.collapsed) {
-        transform: translateX(0%);
+        transform: translateX(0);
     }
 
-    /* O conteúdo principal sempre ocupa 100% da largura, e o margin-left é 0 */
+    /* Main content sempre em largura total no mobile */
     .main-content {
         margin-left: 0;
         padding-left: 15px;
         padding-right: 15px;
-        padding-top: 15px; /* Ajuste de padding superior para mobile */
+        padding-top: 15px;
+    }
+}
+
+/*
+ * =========================================
+ * Media Queries - DESKTOP
+ * =========================================
+ * DESKTOP: Sidebar visível por padrão
+ */
+@media (min-width: 992px) {
+    /*
+     * Sidebar visível por padrão no desktop via CSS puro
+     * O estado inicial é definido pelo CSS, não pelo JS
+     */
+    .sidebar {
+        transform: translateX(0);
+    }
+
+    /* Main content com margin para acomodar sidebar */
+    .main-content {
+        margin-left: var(--sidebar-width);
     }
 }
