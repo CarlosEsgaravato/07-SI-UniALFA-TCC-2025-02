@@ -1,8 +1,10 @@
 package edu.unialfa.institutoMario.controller;
 
 import edu.unialfa.institutoMario.model.Aluno;
+import edu.unialfa.institutoMario.model.Disciplina;
 import edu.unialfa.institutoMario.model.Turma;
 import edu.unialfa.institutoMario.service.AlunoService;
+import edu.unialfa.institutoMario.service.DisciplinaService;
 import edu.unialfa.institutoMario.service.ReportService;
 import edu.unialfa.institutoMario.service.TurmaService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,12 +33,17 @@ public class RelatorioController {
     private AlunoService alunoService;
 
     @Autowired
+    private DisciplinaService disciplinaService;
+
+    @Autowired
     private ReportService reportService;
 
     @GetMapping
     public String centralDeRelatorios() {
         return "relatorios/relatorios";
     }
+
+    // RELATÓRIO: ALUNOS POR TURMA
 
     @GetMapping("/alunos-por-turma")
     public String getPaginaAlunosPorTurma(Model model) {
@@ -70,5 +77,41 @@ public class RelatorioController {
     public void exportarAlunosPdf(@RequestParam Long turmaId, HttpServletResponse response) throws IOException {
         List<Aluno> alunos = alunoService.listarAlunosPorTurmaId(turmaId);
         reportService.gerarPdfAlunosPorTurma(alunos, response);
+    }
+
+    // RELATÓRIO: DISCIPLINAS POR TURMA
+
+    @GetMapping("/disciplinas-por-turma")
+    public String getPaginaDisciplinasPorTurma(Model model) {
+        model.addAttribute("turmas", turmaService.listarTodas());
+        model.addAttribute("disciplinas", Collections.emptyList());
+        model.addAttribute("turmaSelecionadaId", 0L);
+        return "relatorios/disciplinas-por-turma";
+    }
+
+    @PostMapping("/disciplinas-por-turma")
+    public String postGerarRelatorioDisciplinasPorTurma(
+            @RequestParam(required = false) Long turmaId,
+            Model model
+    ) {
+        List<Disciplina> disciplinas = disciplinaService.listarDisciplinasPorTurmaId(turmaId);
+
+        model.addAttribute("turmas", turmaService.listarTodas());
+        model.addAttribute("disciplinas", disciplinas);
+        model.addAttribute("turmaSelecionadaId", turmaId);
+
+        return "relatorios/disciplinas-por-turma";
+    }
+
+    @GetMapping("/disciplinas-por-turma/export/excel")
+    public void exportarDisciplinasExcel(@RequestParam Long turmaId, HttpServletResponse response) throws IOException {
+        List<Disciplina> disciplinas = disciplinaService.listarDisciplinasPorTurmaId(turmaId);
+        reportService.gerarExcelDisciplinasPorTurma(disciplinas, response);
+    }
+
+    @GetMapping("/disciplinas-por-turma/export/pdf")
+    public void exportarDisciplinasPdf(@RequestParam Long turmaId, HttpServletResponse response) throws IOException {
+        List<Disciplina> disciplinas = disciplinaService.listarDisciplinasPorTurmaId(turmaId);
+        reportService.gerarPdfDisciplinasPorTurma(disciplinas, response);
     }
 }
