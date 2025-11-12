@@ -49,4 +49,7 @@ public class DisciplinaService {
         return disciplinaRepository.findAllByTurma_Alunos_Usuario_Id(usuarioId);
     }
 
+    public List<Disciplina> listarDisciplinasPorTurmaId(Long turmaId) {
+        return disciplinaRepository.findByTurma_Id(turmaId);
+    }
 }
