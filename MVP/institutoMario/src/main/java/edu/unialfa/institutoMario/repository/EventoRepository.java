@@ -12,6 +12,7 @@ import java.util.List;
 public interface EventoRepository extends JpaRepository<Evento, Long> {
 
     List<Evento> findByDataAfterOrderByDataAsc(LocalDateTime data, Pageable pageable);
+    List<Evento> findByDataBetweenOrderByDataAsc(LocalDateTime dataInicio, LocalDateTime dataFim);
 
     boolean existsByData(LocalDateTime data);
     boolean existsByDataAndIdNot(LocalDateTime data, Long id);

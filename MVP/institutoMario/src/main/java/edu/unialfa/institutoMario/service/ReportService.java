@@ -16,6 +16,9 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.element.Paragraph;
+import edu.unialfa.institutoMario.model.Evento;
+import java.time.format.DateTimeFormatter;
+import edu.unialfa.institutoMario.model.Prova;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -168,6 +171,166 @@ public class ReportService {
                         disciplina.getTurma().getNome() : "-");
                 table.addCell(disciplina.getProfessor() != null ?
                         disciplina.getProfessor().getUsuario().getNome() : "Não atribuído");
+            }
+
+            document.add(table);
+        }
+    }
+
+    // RELATÓRIO: EVENTOS POR PERÍODO
+
+    public void gerarExcelEventosPorPeriodo(List<Evento> eventos, HttpServletResponse response) throws IOException {
+        setResponseHeaders(response, "application/octet-stream", ".xlsx", "eventos");
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            XSSFSheet sheet = workbook.createSheet("Eventos");
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Nome do Evento", "Turma", "Data", "Local"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Formatter para formatar a data
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+            int rowNum = 1;
+            for (Evento evento : eventos) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(evento.getNomeEvento());
+                row.createCell(1).setCellValue(evento.getTurma() != null ?
+                        evento.getTurma().getNome() : "-");
+                row.createCell(2).setCellValue(evento.getData() != null ?
+                        evento.getData().format(formatter) : "-");
+                row.createCell(3).setCellValue(evento.getLocal() != null ?
+                        evento.getLocal() : "-");
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    public void gerarPdfEventosPorPeriodo(List<Evento> eventos, HttpServletResponse response) throws IOException {
+        setResponseHeaders(response, "application/pdf", ".pdf", "eventos");
+
+        try (PdfWriter writer = new PdfWriter(response.getOutputStream());
+             PdfDocument pdf = new PdfDocument(writer);
+             Document document = new Document(pdf)) {
+
+            document.add(new Paragraph("Relatório de Eventos por Período").setBold().setFontSize(18));
+
+            float[] columnWidths = {3, 2, 2, 2};
+            Table table = new Table(UnitValue.createPercentArray(columnWidths));
+            table.setWidth(UnitValue.createPercentValue(100));
+            table.setMarginTop(20);
+
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Nome do Evento").setBold()));
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Turma").setBold()));
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Data").setBold()));
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Local").setBold()));
+
+            // Formatter para formatar a data
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+            for (Evento evento : eventos) {
+                table.addCell(evento.getNomeEvento());
+                table.addCell(evento.getTurma() != null ?
+                        evento.getTurma().getNome() : "-");
+                table.addCell(evento.getData() != null ?
+                        evento.getData().format(formatter) : "-");
+                table.addCell(evento.getLocal() != null ?
+                        evento.getLocal() : "-");
+            }
+
+            document.add(table);
+        }
+    }
+
+    // RELATÓRIO: PROVAS POR DISCIPLINA
+
+    public void gerarExcelProvasPorDisciplina(List<Prova> provas, HttpServletResponse response) throws IOException {
+        setResponseHeaders(response, "application/octet-stream", ".xlsx", "provas");
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            XSSFSheet sheet = workbook.createSheet("Provas");
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Título", "Data", "Disciplina", "Professor"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Formatter para formatar a data
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            int rowNum = 1;
+            for (Prova prova : provas) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(prova.getTitulo());
+                row.createCell(1).setCellValue(prova.getData() != null ?
+                        prova.getData().format(formatter) : "-");
+                row.createCell(2).setCellValue(prova.getDisciplina() != null ?
+                        prova.getDisciplina().getNome() : "-");
+                row.createCell(3).setCellValue(prova.getDisciplina() != null && prova.getDisciplina().getProfessor() != null ?
+                        prova.getDisciplina().getProfessor().getUsuario().getNome() : "Não atribuído");
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    public void gerarPdfProvasPorDisciplina(List<Prova> provas, HttpServletResponse response) throws IOException {
+        setResponseHeaders(response, "application/pdf", ".pdf", "provas");
+
+        try (PdfWriter writer = new PdfWriter(response.getOutputStream());
+             PdfDocument pdf = new PdfDocument(writer);
+             Document document = new Document(pdf)) {
+
+            document.add(new Paragraph("Relatório de Provas por Disciplina").setBold().setFontSize(18));
+
+            float[] columnWidths = {3, 2, 3, 3};
+            Table table = new Table(UnitValue.createPercentArray(columnWidths));
+            table.setWidth(UnitValue.createPercentValue(100));
+            table.setMarginTop(20);
+
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Título").setBold()));
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Data").setBold()));
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Disciplina").setBold()));
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Professor").setBold()));
+
+            // Formatter para formatar a data
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            for (Prova prova : provas) {
+                table.addCell(prova.getTitulo());
+                table.addCell(prova.getData() != null ?
+                        prova.getData().format(formatter) : "-");
+                table.addCell(prova.getDisciplina() != null ?
+                        prova.getDisciplina().getNome() : "-");
+                table.addCell(prova.getDisciplina() != null && prova.getDisciplina().getProfessor() != null ?
+                        prova.getDisciplina().getProfessor().getUsuario().getNome() : "Não atribuído");
             }
 
             document.add(table);
