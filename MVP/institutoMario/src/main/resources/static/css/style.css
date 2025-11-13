@@ -1,4 +1,22 @@
-/* Layout Login */
+/*
+ * =========================================
+ * Variáveis e Reset
+ * =========================================
+ */
+:root {
+    --sidebar-width: 260px;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    overflow-x: hidden;
+}
+
+/*
+ * =========================================
+ * Layout Login (Mantido)
+ * =========================================
+ */
 .login-body {
     background: linear-gradient(135deg, #f5f9ff, #ffffff);
 }
@@ -16,10 +34,16 @@
     border-left: 4px solid #004aad;
 }
 
-/* Sidebar */
+/*
+ * =========================================
+ * Sidebar - SOLUÇÃO FOUC/FOIC
+ * =========================================
+ * ESTRATÉGIA: O CSS define o estado inicial correto para cada breakpoint.
+ * O JavaScript só atua nas interações do usuário (cliques), não no estado inicial.
+ */
 .sidebar {
     height: 100vh;
-    width: 260px;
+    width: var(--sidebar-width);
     position: fixed;
     top: 0;
     left: 0;
@@ -27,10 +51,46 @@
     color: white;
     padding-top: 20px;
 
-    /* Fixar layout em coluna */
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Sombra sutil para destacar */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+
+    transition: transform 0.3s ease;
+    z-index: 1050;
+
+    /*
+     * DESKTOP (padrão): Sidebar visível por padrão
+     * Não usa transform aqui, deixa no fluxo normal
+     */
+    transform: translateX(0);
+}
+
+/* Botão de toggle DENTRO da sidebar (fechar no mobile) */
+.sidebar-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: none; /* Escondido por padrão, mostrado apenas no mobile */
+    color: white;
+    background: none;
+    border: none;
+    padding: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+    z-index: 1060;
+}
+
+.sidebar-toggle:hover {
+    color: #ff9999;
+}
+
+/*
+ * Estado colapsado - usado APENAS quando o usuário clica para fechar
+ * Não é o estado inicial em nenhum breakpoint
+ */
+.sidebar.collapsed {
+    transform: translateX(-100%);
 }
 
 .sidebar-logo {
@@ -49,19 +109,18 @@
 
 .sidebar a:hover {
     background-color: #003080;
-    padding-left: 25px; /* Efeito sutil de movimento */
+    padding-left: 25px;
 }
 
 .sidebar a.active {
     background-color: #003080;
     font-weight: 600;
-    border-left: 4px solid #ffffff; /* Linha de destaque para o ativo */
+    border-left: 4px solid #ffffff;
 }
 
-/* Estilo especial para o botão Sair */
 .sidebar a.logout {
     margin-top: auto;
-    color: #ff9999;     /* vermelho claro */
+    color: #ff9999;
     font-weight: 600;
 }
 .sidebar a.logout:hover {
@@ -69,44 +128,58 @@
     color: #ff0000;
 }
 
-/* Conteúdo principal */
+/*
+ * =========================================
+ * Conteúdo Principal
+ * =========================================
+ */
 .main-content {
-    margin-left: 260px;
+    /* DESKTOP: offset padrão para acomodar a sidebar */
+    margin-left: var(--sidebar-width);
     padding: 30px;
-    background-color: #f7f9fc; /* Fundo suave */
+    background-color: #f7f9fc;
     min-height: 100vh;
+    transition: margin-left 0.3s ease;
 }
 
-/* ===== Dashboards / Cards do index ===== */
+/* Classe usada quando sidebar é colapsada manualmente no desktop */
+.main-content.expanded {
+    margin-left: 0;
+}
+
+/*
+ * =========================================
+ * Dashboards / Cards (Mantido)
+ * =========================================
+ */
 .dashboard-card {
-    border-radius: 12px; /* Cantos mais arredondados */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06); /* Sombra mais destacada */
-    border: none; /* Remove a borda padrão do bootstrap */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    border: none;
     transition: transform .2s ease, box-shadow .2s ease;
     background-color: #ffffff;
 }
 .dashboard-card:hover {
-    transform: translateY(-5px); /* Movimento mais pronunciado */
+    transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
 .dashboard-icon {
-    font-size: 2.8rem; /* Ícone maior */
+    font-size: 2.8rem;
     color: #004aad;
-    background: rgba(0,74,173,0.12); /* Fundo do ícone mais visível */
-    padding: 15px; /* Padding maior */
+    background: rgba(0,74,173,0.12);
+    padding: 15px;
     border-radius: 12px;
     display: inline-block;
-    min-width: 70px; /* Garante que o ícone mantenha um tamanho mínimo */
+    min-width: 70px;
     text-align: center;
 }
 
-.h3 { /* Estilo para os números principais (turmasCount, etc) */
+.h3 {
     font-weight: 700;
     color: #333;
 }
 
-/* Card da lista de médias por turma */
 .dashboard-table-card {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -121,24 +194,72 @@
     color: #004aad;
 }
 
-/* Sidebox eventos */
 .sidebox-card {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     border: 1px solid #e0e4eb;
 }
 
-/* melhorar visual das list-group-items dentro do sidebox */
 .sidebox-card .list-group-item {
     padding-top: .8rem;
     padding-bottom: .8rem;
     border-color: #f0f4f8;
 }
 
-/* responsividade: ajustes leves */
-@media (max-width: 991px) {
-    .dashboard-icon { font-size: 2rem; padding: 12px; }
-    .h3 { font-size: 1.5rem; }
-    .main-content { margin-left: 0; padding: 15px; }
-    .sidebar { display: none; } /* Em telas pequenas, a sidebar deve ser ativada por um botão (toggle) */
+/*
+ * =========================================
+ * Media Queries - MOBILE
+ * =========================================
+ * MOBILE: Sidebar escondida por padrão, botão visível
+ */
+@media (max-width: 991.98px) {
+    /*
+     * CRÍTICO: No mobile, a sidebar começa escondida via CSS puro
+     * Não depende de JavaScript para o estado inicial
+     */
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    /* Botão de fechar visível no mobile */
+    .sidebar-toggle {
+        display: block;
+    }
+
+    /*
+     * Quando o JS remove a classe 'collapsed' no mobile (após clique),
+     * a sidebar aparece
+     */
+    .sidebar:not(.collapsed) {
+        transform: translateX(0);
+    }
+
+    /* Main content sempre em largura total no mobile */
+    .main-content {
+        margin-left: 0;
+        padding-left: 15px;
+        padding-right: 15px;
+        padding-top: 15px;
+    }
+}
+
+/*
+ * =========================================
+ * Media Queries - DESKTOP
+ * =========================================
+ * DESKTOP: Sidebar visível por padrão
+ */
+@media (min-width: 992px) {
+    /*
+     * Sidebar visível por padrão no desktop via CSS puro
+     * O estado inicial é definido pelo CSS, não pelo JS
+     */
+    .sidebar {
+        transform: translateX(0);
+    }
+
+    /* Main content com margin para acomodar sidebar */
+    .main-content {
+        margin-left: var(--sidebar-width);
+    }
 }

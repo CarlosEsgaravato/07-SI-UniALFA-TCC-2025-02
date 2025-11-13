@@ -7,8 +7,13 @@
 
 <div th:replace="~{index :: sidebar}"></div>
 
-<div class="main-content">
+<div class="main-content" id="main-content">
     <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <button class="btn btn-primary d-block d-lg-none me-3" id="menu-open-toggle">
+            <i class="bi bi-list"></i>
+        </button>
+
         <h2>Calendário de Eventos</h2>
         <div class="d-flex align-items-center">
             <span class="badge bg-info-subtle text-info-emphasis rounded-pill p-2 me-3" sec:authorize="hasRole('ADMIN')">
@@ -26,6 +31,10 @@
 <script th:src="@{/js/fullcalendar.min.js}"></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
+
+    // NOVO: Define a URL base para garantir que o caminho /uploads/** seja correto, mesmo em containers
+    const CONTEXT_PATH = /*[[@{/}]]*/ '/';
+
     document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('calendar');
         const isAdmin = /*[[${#authorization.expression('hasRole(''ADMIN'')')}]]*/ false;
@@ -55,12 +64,48 @@
                 modalTitle.textContent = 'Eventos para ' + dataFormatada;
 
                 let htmlContent = '<ul class="list-group list-group-flush">';
+
                 eventsOfTheDay.forEach(event => {
                     const hora = event.start.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    htmlContent += `<li class="list-group-item"><strong>${hora} - ${event.title}</strong><br>`;
-                    if (event.extendedProps.local) htmlContent += `<small class="text-muted">Local: ${event.extendedProps.local}</small><br>`;
-                    if (event.extendedProps.observacao) htmlContent += `<small class="text-muted">Obs: ${event.extendedProps.observacao}</small>`;
-                    htmlContent += `</li>`;
+
+                    // Botões de Ação para ADMIN (Melhor Usabilidade)
+                    let acoesHtml = '';
+                    if (isAdmin) {
+                         acoesHtml = `
+                            <div class="mt-2 d-flex gap-1">
+                                <a href="/eventos/editar/${event.id}" class="btn btn-warning btn-sm py-0 px-1" title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="/eventos/deletar/${event.id}" class="btn btn-danger btn-sm py-0 px-1" title="Excluir"
+                                   onclick="return confirm('Deseja realmente excluir este evento?');">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                            </div>`;
+                    }
+
+                    // LÓGICA DO HIPERLINK DA IMAGEM (Usando CONTEXT_PATH)
+                    let imageLinkHtml = '';
+                    if (event.extendedProps.imagemUrl) {
+                        // Constrói o caminho completo da URL
+                        const uploadPath = CONTEXT_PATH.endsWith('/') ? CONTEXT_PATH + 'uploads/' : CONTEXT_PATH + '/uploads/';
+                        const imageUrl = uploadPath + event.extendedProps.imagemUrl;
+
+                        imageLinkHtml = `<a href="${imageUrl}" target="_blank" class="text-decoration-none ms-3" title="Visualizar Imagem">
+                                             <i class="bi bi-image-fill me-1"></i> Imagem
+                                         </a>`;
+                    }
+
+                    htmlContent += `<li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div class="d-flex align-items-center">
+                                                <strong>${hora} - ${event.title}</strong>
+                                                ${imageLinkHtml}
+                                            </div>
+                                            ${event.extendedProps.local ? `<small class="text-muted">Local: ${event.extendedProps.local}</small><br>` : ''}
+                                            ${event.extendedProps.observacao ? `<small class="text-muted">Obs: ${event.extendedProps.observacao}</small>` : ''}
+                                        </div>
+                                        ${acoesHtml}
+                                    </li>`;
                 });
                 htmlContent += '</ul>';
                 modalBody.innerHTML = htmlContent;
@@ -118,7 +163,8 @@
                     classNames: classList,
                     extendedProps: {
                         local: eventData.local,
-                        observacao: eventData.observacao
+                        observacao: eventData.observacao,
+                        imagemUrl: eventData.imagemUrl
                     }
                 };
             },
@@ -141,7 +187,7 @@
 
                     const deleteLink = document.createElement('a');
                     deleteLink.href = `/eventos/deletar/${eventId}`;
-                    deleteLink.className = 'btn btn-danger btn-sm py-0 px-1 ms-1'; // Adicionado ms-1 para espaçamento
+                    deleteLink.className = 'btn btn-danger btn-sm py-0 px-1 ms-1';
                     deleteLink.title = 'Excluir';
                     deleteLink.innerHTML = '<i class="bi bi-trash-fill"></i>';
 
@@ -150,7 +196,6 @@
                         event.stopPropagation();
 
                         if (confirm('Deseja realmente excluir este evento?')) {
-                            // Se o usuário confirmar, redireciona para a URL de exclusão
                             window.location.href = deleteLink.href;
                         }
                     });
@@ -199,6 +244,6 @@
         </div>
     </div>
 </div>
-
+<script th:src="@{/js/sidebar-toggle.js}"></script>
 </body>
 </html>

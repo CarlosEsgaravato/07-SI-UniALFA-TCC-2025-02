@@ -38,6 +38,13 @@ public class EventoService {
         repository.deleteById(id);
     }
 
+    public boolean existeEventoNoHorario(LocalDateTime dataHora, Long idEvento) {
+        if (idEvento == null) {
+            return repository.existsByData(dataHora);
+        } else {
+            return repository.existsByDataAndIdNot(dataHora, idEvento);
+        }
+    }
 
     public List<Evento> buscarProximosEventos(int limite) {
 
