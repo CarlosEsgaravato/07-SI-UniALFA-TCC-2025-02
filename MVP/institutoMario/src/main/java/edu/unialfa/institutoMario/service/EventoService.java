@@ -7,7 +7,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -45,5 +45,13 @@ public class EventoService {
                 LocalDateTime.now(),
                 PageRequest.of(0, limite)
         );
+    }
+
+    public List<Evento> listarEventosPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
+        // Converte LocalDate para LocalDateTime (início do dia e fim do dia)
+        LocalDateTime dataHoraInicio = dataInicio.atStartOfDay();
+        LocalDateTime dataHoraFim = dataFim.atTime(23, 59, 59);
+
+        return repository.findByDataBetweenOrderByDataAsc(dataHoraInicio, dataHoraFim);
     }
 }
