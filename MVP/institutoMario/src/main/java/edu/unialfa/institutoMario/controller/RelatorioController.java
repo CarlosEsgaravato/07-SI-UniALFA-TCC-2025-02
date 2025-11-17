@@ -19,7 +19,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 import edu.unialfa.institutoMario.model.Evento;
 import edu.unialfa.institutoMario.model.Prova;
 import edu.unialfa.institutoMario.service.ProvaService;
-
+import edu.unialfa.institutoMario.dto.NotaPorDisciplinaDTO;
+import edu.unialfa.institutoMario.dto.NotaDTO;
+import edu.unialfa.institutoMario.service.NotaService;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+import java.util.Map;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +53,9 @@ public class RelatorioController {
 
     @Autowired
     private ProvaService provaService;
+
+    @Autowired
+    private NotaService notaService;
 
     @GetMapping
     public String centralDeRelatorios() {
@@ -224,5 +234,76 @@ public class RelatorioController {
     public void exportarProvasPdf(@RequestParam Long disciplinaId, HttpServletResponse response) throws IOException {
         List<Prova> provas = provaService.listarPorDisciplina(disciplinaId);
         reportService.gerarPdfProvasPorDisciplina(provas, response);
+    }
+
+    // RELATÓRIO: NOTAS POR ALUNO
+
+    @GetMapping("/notas-por-aluno")
+    public String getPaginaNotasPorAluno(Model model) {
+        model.addAttribute("turmas", turmaService.listarTodas());
+        model.addAttribute("notasAgrupadas", null);
+        model.addAttribute("turmaSelecionadaId", null);
+        model.addAttribute("alunoSelecionadoId", null);
+        model.addAttribute("alunoNome", null);
+        return "relatorios/notas-por-aluno";
+    }
+
+    @PostMapping("/notas-por-aluno")
+    public String postGerarRelatorioNotasPorAluno(
+            @RequestParam(required = false) Long turmaId,
+            @RequestParam(required = false) Long alunoId,
+            Model model
+    ) {
+        List<NotaPorDisciplinaDTO> notasAgrupadas = notaService.buscarNotasDoAlunoAgrupadas(alunoId);
+
+        // Busca o nome do aluno para exibir no título
+        Aluno aluno = alunoService.buscarPorId(alunoId);
+        String alunoNome = aluno != null ? aluno.getUsuario().getNome() : "Desconhecido";
+
+        model.addAttribute("turmas", turmaService.listarTodas());
+        model.addAttribute("notasAgrupadas", notasAgrupadas);
+        model.addAttribute("turmaSelecionadaId", turmaId);
+        model.addAttribute("alunoSelecionadoId", alunoId);
+        model.addAttribute("alunoNome", alunoNome);
+
+        return "relatorios/notas-por-aluno";
+    }
+
+    /**
+     * Endpoint REST para buscar alunos de uma turma via AJAX
+     * Retorna JSON com lista de alunos
+     */
+    @GetMapping("/api/alunos-por-turma/{turmaId}")
+    @ResponseBody
+    public List<Map<String, Object>> buscarAlunosPorTurma(@PathVariable Long turmaId) {
+        List<Aluno> alunos = alunoService.listarAlunosPorTurmaId(turmaId);
+
+        // Retorna apenas id e nome dos alunos
+        return alunos.stream()
+                .map(aluno -> {
+                    Map<String, Object> alunoMap = new HashMap<>();
+                    alunoMap.put("id", aluno.getId());
+                    alunoMap.put("nome", aluno.getUsuario().getNome());
+                    return alunoMap;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/notas-por-aluno/export/excel")
+    public void exportarNotasExcel(@RequestParam Long alunoId, HttpServletResponse response) throws IOException {
+        List<NotaPorDisciplinaDTO> notasAgrupadas = notaService.buscarNotasDoAlunoAgrupadas(alunoId);
+        Aluno aluno = alunoService.buscarPorId(alunoId);
+        String alunoNome = aluno != null ? aluno.getUsuario().getNome() : "Aluno";
+
+        reportService.gerarExcelNotasPorAluno(notasAgrupadas, alunoNome, response);
+    }
+
+    @GetMapping("/notas-por-aluno/export/pdf")
+    public void exportarNotasPdf(@RequestParam Long alunoId, HttpServletResponse response) throws IOException {
+        List<NotaPorDisciplinaDTO> notasAgrupadas = notaService.buscarNotasDoAlunoAgrupadas(alunoId);
+        Aluno aluno = alunoService.buscarPorId(alunoId);
+        String alunoNome = aluno != null ? aluno.getUsuario().getNome() : "Aluno";
+
+        reportService.gerarPdfNotasPorAluno(notasAgrupadas, alunoNome, response);
     }
 }
