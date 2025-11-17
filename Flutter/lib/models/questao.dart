@@ -1,7 +1,6 @@
-// lib/models/questao.dart
 class Questao {
   final int id;
-  final String numero; // <-- CORRIGIDO: Era 'int', agora é 'String'
+  final String numero;
   final String enunciado;
   final String alternativaA;
   final String alternativaB;
@@ -9,8 +8,6 @@ class Questao {
   final String alternativaD;
   final String alternativaE;
   final String alternativaCorreta;
-  // O seu backend tem 'pontuacao' como BigDecimal,
-  // vamos tratá-lo como double no Dart.
   final double pontuacao;
 
   Questao({
@@ -27,7 +24,6 @@ class Questao {
   });
 
   factory Questao.fromJson(Map<String, dynamic> json) {
-    // Função auxiliar para converter 'pontuacao' (que pode ser int ou double)
     double parsePontuacao(dynamic pontuacaoJson) {
       if (pontuacaoJson is int) {
         return pontuacaoJson.toDouble();
@@ -36,18 +32,12 @@ class Questao {
       } else if (pontuacaoJson is String) {
         return double.tryParse(pontuacaoJson) ?? 0.0;
       }
-      return 0.0; // Valor padrão
+      return 0.0;
     }
 
     return Questao(
       id: json['id'],
-
-      // --- A CORREÇÃO PRINCIPAL ---
-      // O 'numero' vem como String do backend
-      // Usamos '??' para garantir que não seja nulo.
       numero: json['numero'] ?? '?',
-
-      // --- TORNANDO O RESTO SEGURO CONTRA NULOS ---
       enunciado: json['enunciado'] ?? 'Enunciado não disponível',
       alternativaA: json['alternativaA'] ?? '',
       alternativaB: json['alternativaB'] ?? '',

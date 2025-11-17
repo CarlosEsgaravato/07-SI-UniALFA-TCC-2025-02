@@ -61,13 +61,11 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if (erro == null) {
-        // SUCESSO!
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
       } else {
-        // FALHA! Exibe o erro exato vindo do backend.
         MsgAlerta.show(
           context: context,
           titulo: 'Erro de Login',

@@ -1,14 +1,13 @@
-// lib/models/aluno.dart
 class Aluno {
   final int id;
   final String nome;
-  final String? turma; // Alterado para opcional
+  final String? turma;
   final String email;
 
   Aluno({
     required this.id,
     required this.nome,
-    this.turma, // Removido 'required'
+    this.turma,
     required this.email,
   });
 
@@ -16,7 +15,7 @@ class Aluno {
     return Aluno(
       id: json['id'],
       nome: json['nome'],
-      turma: json['turma'] as String?, // Cast para String?
+      turma: json['turma'] as String?,
       email: json['email'],
     );
   }

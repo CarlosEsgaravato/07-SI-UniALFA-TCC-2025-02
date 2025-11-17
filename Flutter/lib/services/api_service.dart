@@ -1,38 +1,36 @@
-// lib/services/api_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:hackathonflutter/services/auth_service.dart'; // Importar AuthService
-import 'package:flutter/foundation.dart'; // Para kDebugMode
+import 'package:hackathonflutter/services/auth_service.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiService {
 
   static final String _baseUrl = kIsWeb
-      ? 'http://localhost:8080/api' // Para Web
-      : 'http://192.168.0.102:8080/api'; // Para Android
+      ? 'http://localhost:8080/api'
+      : 'http://192.168.0.110:8080/api';
 
-  final AuthService _authService; // Injetar AuthService para obter o token
+  final AuthService _authService;
 
-  ApiService(this._authService); // Construtor para receber AuthService
+  ApiService(this._authService);
 
-  // Metodo GET para fazer requisições à API
   Future<dynamic> get(String endpoint) async {
     final uri = Uri.parse('$_baseUrl/$endpoint');
-    final token = await _authService.getToken(); // Obter o token de autenticação
+    final token = await _authService.getToken();
 
     final headers = {
       'Content-Type': 'application/json; charset=UTF-8',
-      if (token != null) 'Authorization': 'Bearer $token', // Adicionar token se existir
+      if (token != null) 'Authorization': 'Bearer $token',
     };
 
     try {
-      if (kDebugMode) { // Apenas em modo debug
+      if (kDebugMode) {
         print('ApiService GET: Request to: $uri');
         print('ApiService GET: Headers: $headers');
       }
 
       final response = await http.get(uri, headers: headers);
 
-      if (kDebugMode) { // Apenas em modo debug
+      if (kDebugMode) {
         print('ApiService GET: Response Status: ${response.statusCode}');
         print('ApiService GET: Response Body: ${response.body}');
       }
@@ -41,7 +39,7 @@ class ApiService {
         if (response.body.isNotEmpty) {
           return jsonDecode(response.body);
         } else {
-          return null; // Retorna nulo se o corpo da resposta estiver vazio (ex: 204 No Content)
+          return null;
         }
       } else if (response.statusCode == 401) {
         _authService.logout();
@@ -69,8 +67,6 @@ class ApiService {
       throw Exception('Erro de conexão ou ao buscar dados: $e');
     }
   }
-
-  // Metodo POST para fazer requisições à API
   Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
     final uri = Uri.parse('$_baseUrl/$endpoint');
     final token = await _authService.getToken();
@@ -84,13 +80,13 @@ class ApiService {
       if (kDebugMode) {
         print('ApiService POST: Request to: $uri');
         print('ApiService POST: Headers: $headers');
-        print('ApiService POST: Request Body: ${jsonEncode(data)}'); // Muito importante para ver o que está sendo enviado
+        print('ApiService POST: Request Body: ${jsonEncode(data)}');
       }
 
       final response = await http.post(
         uri,
         headers: headers,
-        body: jsonEncode(data), // Garanta que o corpo é codificado para JSON
+        body: jsonEncode(data),
       );
 
       if (kDebugMode) {
@@ -99,18 +95,15 @@ class ApiService {
       }
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        // Se a API retornar um corpo vazio para 204 No Content, não tente decodificar
         if (response.body.isNotEmpty) {
           return jsonDecode(response.body);
         } else {
-          // Retorna um mapa de sucesso padrão para 204 ou sem corpo, que o serviço pode interpretar
           return {'message': 'Requisição bem-sucedida, sem conteúdo de resposta.'};
         }
       } else if (response.statusCode == 401) {
         _authService.logout();
         throw Exception('Não autorizado: Token inválido ou expirado.');
       } else {
-        // Tenta decodificar o erro da API se houver um corpo
         String errorMessage = 'Falha ao enviar dados para $endpoint: ${response.statusCode}';
         if (response.body.isNotEmpty) {
           try {

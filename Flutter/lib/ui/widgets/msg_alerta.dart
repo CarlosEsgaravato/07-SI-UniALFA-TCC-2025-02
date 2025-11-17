@@ -1,8 +1,7 @@
-// lib/ui/widgets/msg_alerta.dart
+
 import 'package:flutter/material.dart';
 
 class MsgAlerta {
-  // Construtor privado para evitar instanciação, já que será uma classe estática
   MsgAlerta._();
 
   static Future<void> show({
@@ -14,7 +13,7 @@ class MsgAlerta {
   }) async {
     await showDialog(
       context: context,
-      builder: (BuildContext dialogContext) { // Use dialogContext para o Navigator.pop
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(titulo, style: TextStyle(color: titleColor)),
           content: Text(texto),
@@ -37,8 +36,6 @@ class MsgAlerta {
     }
     return botoes;
   }
-
-  // --- Métodos de conveniência ---
 
   static Future<void> showError(BuildContext context, String titulo, String texto) async {
     await show(
@@ -96,7 +93,7 @@ class MsgAlerta {
       context: context,
       titulo: titulo,
       texto: texto,
-      titleColor: Colors.blue, // Cor azul para informações
+      titleColor: Colors.blue,
       botoes: [
         TextButton(
           onPressed: () {
@@ -118,13 +115,13 @@ class MsgAlerta {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(dialogContext).pop(false); // Retorna false para "Cancelar"
+                Navigator.of(dialogContext).pop(false);
               },
               child: const Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(dialogContext).pop(true); // Retorna true para "Confirmar"
+                Navigator.of(dialogContext).pop(true);
               },
               child: const Text('Confirmar'),
             ),
@@ -132,6 +129,6 @@ class MsgAlerta {
         );
       },
     );
-    return confirm ?? false; // Retorna false se o diálogo for descartado (clicando fora, por exemplo)
+    return confirm ?? false;
   }
 }

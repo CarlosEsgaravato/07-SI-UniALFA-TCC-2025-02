@@ -1,17 +1,11 @@
-// lib/ui/pages/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:hackathonflutter/services/auth_service.dart';
 import 'package:hackathonflutter/ui/pages/listagem_page.dart';
 import 'package:hackathonflutter/ui/pages/login_page.dart';
-// Removido: import 'package:hackathonflutter/screens/camera_screen.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
-  /**
-   * Método de navegação inteligente (COM A CORREÇÃO DO BUG)
-   */
   Future<void> _navegarParaListagem(BuildContext context) async {
     final authService = Provider.of<AuthService>(context, listen: false);
     final String? tipoUsuario = await authService.getTipoUsuario();
@@ -19,17 +13,11 @@ class HomePage extends StatelessWidget {
     print('DEBUG: O tipo de usuário salvo é: "$tipoUsuario"');
 
     final ListagemModo modo;
-
-    // --- A CORREÇÃO IMPORTANTE ESTÁ AQUI ---
-    // O seu log mostra que o tipo é "ADMIN".
-    // Vamos verificar se a string "admin" (em minúsculas) CONTÉM "admin".
     if (tipoUsuario?.toLowerCase().contains('admin') ?? false) {
       modo = ListagemModo.Admin;
     } else {
       modo = ListagemModo.Professor;
     }
-    // --- FIM DA CORREÇÃO ---
-
     if (context.mounted) {
       Navigator.push(
         context,
@@ -93,19 +81,6 @@ class HomePage extends StatelessWidget {
                         _navegarParaListagem(context);
                       },
                     ),
-
-                    // Botão 2 (REMOVIDO)
-                    // _MenuCard(
-                    //   context: context,
-                    //   icon: Icons.camera_alt_outlined,
-                    //   text: 'Escanear Gabarito',
-                    //   onTap: () {
-                    //     Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(builder: (context) => const CameraScreen()),
-                    //     );
-                    //   },
-                    // ),
                   ],
                 ),
               ),
@@ -116,7 +91,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // --- WIDGET REUTILIZÁVEL PARA O CARTÃO DO MENU ---
   Widget _MenuCard({
     required BuildContext context,
     required IconData icon,

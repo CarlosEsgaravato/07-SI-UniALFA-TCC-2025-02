@@ -1,4 +1,3 @@
-// lib/ui/pages/gabarito_page.dart
 import 'package:flutter/material.dart';
 import 'package:hackathonflutter/models/aluno.dart';
 import 'package:hackathonflutter/models/questao.dart';
@@ -35,9 +34,6 @@ class _GabaritoPageState extends State<GabaritoPage> {
   late OcrService _ocrService;
   List<Questao> _questoes = [];
 
-  // --- CORREÇÃO AQUI ---
-  // A chave do Map agora é 'int' (número da questão)
-  // em vez de 'String'.
   Map<int, TextEditingController> _controllers = {};
   List<RespostaSimplesDTO> _respostasSalvas = [];
   Aluno? _alunoSelecionado;
@@ -64,7 +60,6 @@ class _GabaritoPageState extends State<GabaritoPage> {
     super.dispose();
   }
 
-  // Carrega as questões E as respostas salvas do aluno
   Future<void> _carregarQuestoes() async {
     setState(() { _carregando = true; });
 
@@ -97,11 +92,6 @@ class _GabaritoPageState extends State<GabaritoPage> {
       setState(() {
         _questoes = questoesCarregadas;
         _inicializarControllers();
-
-        // (Lógica de preencher gabarito correto não precisa de mudança)
-        // if (widget.isViewingGabarito && _provaSelecionada!.respostasCorretas != null) {
-        //   _preencherRespostasCorretas();
-        // }
       });
 
     } catch (e) {
@@ -115,43 +105,32 @@ class _GabaritoPageState extends State<GabaritoPage> {
     }
   }
 
-  // Preenche os campos de texto com as respostas salvas
-  // --- CORREÇÃO AQUI ---
   void _inicializarControllers() {
     _controllers.clear();
     for (var questao in _questoes) {
-      // Converte o número da questão (ex: "01") para um int (ex: 1)
       final int? questaoNumInt = int.tryParse(questao.numero);
-      if (questaoNumInt == null) continue; // Ignora se a chave for inválida (ex: "A1")
+      if (questaoNumInt == null) continue;
 
-      // Encontra a resposta salva comparando os ints
       final respostaSalva = _respostasSalvas.firstWhere(
             (r) => (int.tryParse(r.numeroQuestao) ?? -1) == questaoNumInt,
         orElse: () => RespostaSimplesDTO(numeroQuestao: '', alternativaEscolhida: ''),
       );
 
-      // Salva no Map usando a CHAVE INT
       _controllers[questaoNumInt] = TextEditingController(
           text: respostaSalva.alternativaEscolhida
       );
     }
   }
 
-  // Preenche os campos com as respostas lidas do OCR
-  // --- CORREÇÃO AQUI ---
   void _preencherRespostasOCR(List<Map<String, String>> respostasLidas) {
     if (mounted) {
       setState(() {
         for (var respostaLida in respostasLidas) {
           final String? questaoNumeroStr = respostaLida['questao'];
           final String? alternativa = respostaLida['resposta']?.toUpperCase();
-
-          // Converte o número lido (ex: "1") para um int (ex: 1)
           final int? questaoNumInt = int.tryParse(questaoNumeroStr ?? '');
 
-          // Verifica se o controller existe usando a CHAVE INT
           if (questaoNumInt != null && alternativa != null && _controllers.containsKey(questaoNumInt)) {
-            // Atualiza o controller usando a CHAVE INT
             _controllers[questaoNumInt]!.text = alternativa;
           }
         }
@@ -160,10 +139,6 @@ class _GabaritoPageState extends State<GabaritoPage> {
     }
   }
 
-  // (Método _preencherRespostasCorretas removido para simplificar,
-  //  pois _inicializarControllers agora lida com o preenchimento inicial)
-
-  // --- CORREÇÃO AQUI ---
   Future<void> _enviarRespostas() async {
     if (!widget.isViewingGabarito && _alunoSelecionado == null) {
       MsgAlerta.showWarning(context, 'Atenção', 'Nenhum aluno selecionado.');
@@ -180,17 +155,15 @@ class _GabaritoPageState extends State<GabaritoPage> {
     int respostasPreenchidas = 0;
 
     for (var questao in _questoes) {
-      // Converte o número da questão (ex: "01") para int (ex: 1)
       final int? questaoNumInt = int.tryParse(questao.numero);
       if (questaoNumInt == null) continue;
 
-      // Pega o controller usando a CHAVE INT
       final controller = _controllers[questaoNumInt];
 
       if (controller != null && controller.text.isNotEmpty) {
         respostasAluno.add({
-          'questao': questao.numero, // Envia a string ORIGINAL ("01") para a API
-          'resposta': controller.text.toUpperCase(), // String
+          'questao': questao.numero,
+          'resposta': controller.text.toUpperCase(),
         });
         respostasPreenchidas++;
       }
@@ -222,7 +195,7 @@ class _GabaritoPageState extends State<GabaritoPage> {
         await MsgAlerta.showSuccess(context, 'Sucesso', mensagemSucesso);
 
         if (!mounted) return;
-        Navigator.pop(context); // Volta para a ListagemPage
+        Navigator.pop(context);
 
       } else {
         if (mounted) {
@@ -244,11 +217,12 @@ class _GabaritoPageState extends State<GabaritoPage> {
     }
   }
 
-  // MÉTODO _lerGabaritoCamera (Já estava correto da última vez)
   Future<void> _lerGabaritoCamera() async {
     final Map<String, dynamic>? result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const CameraScreen()),
+      MaterialPageRoute(
+        builder: (context) => const CameraScreen(),
+      ),
     );
 
     if (result == null || !mounted) return;
@@ -263,7 +237,6 @@ class _GabaritoPageState extends State<GabaritoPage> {
     }
 
     try {
-      // ESTA FUNÇÃO AGORA ESTÁ CORRIGIDA
       _preencherRespostasOCR(respostasOCR);
 
       MsgAlerta.showSuccess(context, 'OCR Concluído',
@@ -277,23 +250,16 @@ class _GabaritoPageState extends State<GabaritoPage> {
     }
   }
 
-
-  // Lida com o botão "voltar"
-  // --- CORREÇÃO AQUI ---
   Future<bool> _onBackPressed() async {
     if (_enviando) {
       return false;
     }
     bool temAlteracoes = false;
     for (var questao in _questoes) {
-      // Converte o número da questão (ex: "01") para int (ex: 1)
       final int? questaoNumInt = int.tryParse(questao.numero);
       if (questaoNumInt == null) continue;
 
-      // Pega o controller usando a CHAVE INT
       final controller = _controllers[questaoNumInt];
-
-      // Encontra a resposta salva comparando os ints
       final respostaSalva = _respostasSalvas.firstWhere(
             (r) => (int.tryParse(r.numeroQuestao) ?? -1) == questaoNumInt,
         orElse: () => RespostaSimplesDTO(numeroQuestao: '', alternativaEscolhida: ''),
@@ -315,7 +281,6 @@ class _GabaritoPageState extends State<GabaritoPage> {
     return true;
   }
 
-  // (Método _appBarTitle não precisa de alteração)
   String get _appBarTitle {
     if (widget.isViewingGabarito) {
       return 'Gabarito Correto: ${widget.prova.disciplinaNome}';
@@ -347,7 +312,7 @@ class _GabaritoPageState extends State<GabaritoPage> {
         body: _carregando
             ? const CirculoEspera()
             : _questoes.isEmpty
-            ? Center( // (Layout de 'Nenhuma questão' não precisa de alteração)
+            ? Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -384,7 +349,6 @@ class _GabaritoPageState extends State<GabaritoPage> {
         )
             : Column(
           children: [
-            // (Layout do 'Nome do Aluno' não precisa de alteração)
             if (!widget.isViewingGabarito &&
                 _alunoSelecionado != null)
               Container(
@@ -407,22 +371,18 @@ class _GabaritoPageState extends State<GabaritoPage> {
               ),
 
             Expanded(
-              // --- CORREÇÃO AQUI ---
               child: ListView.builder(
                 padding: const EdgeInsets.all(16.0),
                 itemCount: _questoes.length,
                 itemBuilder: (context, index) {
                   final questao = _questoes[index];
-                  // Converte o número da questão (ex: "01") para int (ex: 1)
                   final int? questaoNumInt = int.tryParse(questao.numero);
-
-                  // Pega o controller usando a CHAVE INT
                   final controller = (questaoNumInt != null)
                       ? _controllers[questaoNumInt]
                       : null;
 
                   if (controller == null)
-                    return const SizedBox.shrink(); // Ignora se a chave foi inválida
+                    return const SizedBox.shrink();
 
                   return Card(
                     margin:
@@ -434,7 +394,7 @@ class _GabaritoPageState extends State<GabaritoPage> {
                         CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Questão ${questao.numero}:', // Mostra a string original "01"
+                            'Questão ${questao.numero}:',
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium,
@@ -449,7 +409,7 @@ class _GabaritoPageState extends State<GabaritoPage> {
                               ),
                               Expanded(
                                 child: TextField(
-                                  controller: controller, // Usa o controller correto
+                                  controller: controller,
                                   enabled: !widget.isViewingGabarito,
                                   maxLength: 1,
                                   textCapitalization:
@@ -481,7 +441,6 @@ class _GabaritoPageState extends State<GabaritoPage> {
               ),
             ),
 
-            // (Layout do 'Botão Enviar' não precisa de alteração)
             if (!widget.isViewingGabarito && _questoes.isNotEmpty)
               Container(
                 padding: const EdgeInsets.all(16.0),
@@ -516,7 +475,6 @@ class _GabaritoPageState extends State<GabaritoPage> {
               ),
           ],
         ),
-        // (Layout do 'Botão Flutuante' não precisa de alteração)
         floatingActionButton: !widget.isViewingGabarito &&
             _questoes.isNotEmpty &&
             !_enviando
