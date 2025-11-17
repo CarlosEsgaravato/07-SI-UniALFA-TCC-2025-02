@@ -1,4 +1,3 @@
-// lib/services/professor_service.dart
 import 'package:hackathonflutter/models/professor.dart';
 import 'package:hackathonflutter/services/api_service.dart';
 
@@ -7,7 +6,6 @@ class ProfessorService {
 
   ProfessorService(this._apiService);
 
-  // Chama o endpoint GET /api/professores
   Future<List<Professor>> buscarProfessores() async {
     try {
       final responseData = await _apiService.get('professores');

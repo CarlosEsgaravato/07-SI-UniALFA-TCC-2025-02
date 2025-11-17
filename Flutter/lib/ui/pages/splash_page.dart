@@ -19,29 +19,19 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _verificarLogin() async {
-    // Aguarda um pouco para mostrar a splash screen
     await Future.delayed(const Duration(seconds: 2));
-
-    // Acessa o AuthService via Provider
     final authService = Provider.of<AuthService>(context, listen: false);
-
-    // Primeiro, verifica se há um token salvo localmente
     final isLocalmenteLogado = await authService.isLogado();
-
     if (isLocalmenteLogado) {
-      // Se houver um token local, tenta validá-lo com a API
       final isValidToken = await authService.isLogado();
-
       if (mounted) {
         if (isValidToken) {
-          // Token válido, redireciona para a HomePage
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomePage()),
           );
         } else {
-          // Token inválido/expirado, força logout e redireciona para LoginPage
-          await authService.logout(); // Limpa credenciais inválidas
+          await authService.logout();
           if (mounted) {
             Navigator.pushReplacement(
               context,
@@ -51,7 +41,6 @@ class _SplashPageState extends State<SplashPage> {
         }
       }
     } else {
-      // Não há token salvo localmente, redireciona para LoginPage
       if (mounted) {
         Navigator.pushReplacement(
           context,

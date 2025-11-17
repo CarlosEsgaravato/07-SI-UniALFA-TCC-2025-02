@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   static final String _baseUrl = kIsWeb
       ? 'http://localhost:8080/api' // Para Web
-      : 'http://192.168.0.102:8080/api'; // Para Android
+      : 'http://192.168.0.110:8080/api'; // Para Android
 
   static const String _keyToken = 'auth_token';
   static const String _keyLogado = 'user_logged_in';
@@ -16,9 +16,6 @@ class AuthService {
   static const String _keyUserEmail = 'user_email';
   static const String _keyUserTipo = 'user_tipo';
 
-  /// Tenta autenticar o usuário na API com ID e senha.
-  /// Retorna `null` se o login for bem-sucedido.
-  /// Retorna uma `String` com a mensagem de erro caso contrário.
   Future<String?> autenticar(String id, String password) async {
     final url = Uri.parse('$_baseUrl/auth/login');
 
@@ -35,25 +32,20 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        // --- SUCESSO ---
         final Map<String, dynamic> responseData = jsonDecode(response.body);
-
-        // (A validação de "Professor" já foi feita no backend)
-
         await _salvarDadosUsuario(responseData);
         if (kDebugMode) {
           print('Login bem-sucedido!');
         }
-        return null; // Retorna null para indicar sucesso
+        return null;
       } else {
-        // --- FALHA NA AUTENTICAÇÃO (EX: 401 ou 403) ---
         String erro = 'Falha na autenticação. Tente novamente.';
 
         if (response.body.isNotEmpty) {
           try {
             final Map<String, dynamic> errorData = jsonDecode(response.body);
             if (errorData.containsKey('erro')) {
-              erro = errorData['erro']; // Pega a mensagem da API
+              erro = errorData['erro'];
             }
           } catch (e) {
             if (kDebugMode) {
@@ -65,10 +57,9 @@ class AuthService {
         if (kDebugMode) {
           print('Falha na autenticação: ${response.statusCode} - $erro');
         }
-        return erro; // Retorna a mensagem de erro para a tela
+        return erro;
       }
     } catch (e) {
-      // --- ERRO DE CONEXÃO ---
       if (kDebugMode) {
         print('Erro de conexão ao tentar autenticar: $e');
       }
@@ -107,8 +98,6 @@ class AuthService {
 
   Future<String?> getTipoUsuario() async {
     final prefs = await SharedPreferences.getInstance();
-    // Retorna o 'tipo' (ex: "Administrador", "Professor")
-    // salvo durante o login
     return prefs.getString(_keyUserTipo);
   }
 

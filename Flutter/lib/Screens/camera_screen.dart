@@ -1,16 +1,11 @@
-// lib/screens/camera_screen.dart
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:hackathonflutter/services/ocr_service.dart';
 import 'package:hackathonflutter/ui/widgets/msg_alerta.dart';
-import 'package:hackathonflutter/screens/result_screen.dart'; // Importe ResultScreen
+import 'package:hackathonflutter/screens/result_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:hackathonflutter/services/aluno_service.dart';
-import 'package:hackathonflutter/services/avaliacao_service.dart';
-import 'package:hackathonflutter/models/aluno.dart';
-import 'package:hackathonflutter/models/prova.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -24,16 +19,12 @@ class _CameraScreenState extends State<CameraScreen> {
   List<CameraDescription>? _cameras;
   XFile? _imageFile;
   late OcrService _ocrService;
-  late AlunoService _alunoService;
-  late AvaliacaoService _avaliacaoService;
   bool _isProcessing = false;
 
   @override
   void initState() {
     super.initState();
     _ocrService = Provider.of<OcrService>(context, listen: false);
-    _alunoService = Provider.of<AlunoService>(context, listen: false);
-    _avaliacaoService = Provider.of<AvaliacaoService>(context, listen: false);
     _initializeCamera();
   }
 
@@ -58,77 +49,77 @@ class _CameraScreenState extends State<CameraScreen> {
     if (!_controller!.value.isInitialized) {
       return;
     }
-    setState(() {
-      _isProcessing = true;
-    });
+    setState(() { _isProcessing = true; });
+
     try {
       final image = await _controller!.takePicture();
-      setState(() {
-        _imageFile = image;
-      });
-      await _processImage(image.path); // Passa o caminho da imagem para processamento
+      setState(() { _imageFile = image; });
+      await _processAndReturnImage(image.path);
     } catch (e) {
       print("Erro ao tirar foto: $e");
       if (mounted) {
         MsgAlerta.showError(context, 'Erro', 'Erro ao tirar a foto.');
       }
-    } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      setState(() { _isProcessing = false; });
     }
   }
 
   Future<void> _pickImage() async {
-    setState(() {
-      _isProcessing = true;
-    });
+    setState(() { _isProcessing = true; });
+
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
       if (image != null) {
-        setState(() {
-          _imageFile = image;
-        });
-        await _processImage(image.path); // Passa o caminho da imagem para processamento
+        setState(() { _imageFile = image; });
+        await _processAndReturnImage(image.path);
+      } else {
+        setState(() { _isProcessing = false; });
       }
     } catch (e) {
       print("Erro ao selecionar imagem: $e");
       if (mounted) {
         MsgAlerta.showError(context, 'Erro', 'Erro ao selecionar imagem da galeria.');
       }
-    } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      setState(() { _isProcessing = false; });
     }
   }
 
-  Future<void> _processImage(String imagePath) async {
-    setState(() {
-      _isProcessing = true;
-    });
+  Future<void> _processAndReturnImage(String imagePath) async {
+    setState(() { _isProcessing = true; });
+
     try {
       final Map<String, dynamic> extractedData = await _ocrService.processGabarito(imagePath);
 
-      if (mounted) {
-        // Redireciona para a ResultScreen com os dados extraídos
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResultScreen(extractedData: extractedData),
-          ),
-        );
+      if (!mounted) return;
+      final dynamic resultFromConfirm = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultScreen(extractedData: extractedData),
+        ),
+      );
+      if (resultFromConfirm != null && resultFromConfirm is Map<String, dynamic>) {
+        if (!mounted) return;
+        Navigator.pop(context, resultFromConfirm);
+      } else {
+        if (mounted) {
+          MsgAlerta.showInfo(context, 'Cancelado', 'A operação foi cancelada.');
+        }
       }
+
     } catch (e) {
-      print("Erro ao processar imagem: $e");
+      print("Erro no fluxo de processamento e retorno: $e");
       if (mounted) {
-        MsgAlerta.showError(context, 'Erro no OCR', 'Não foi possível processar o gabarito: $e');
+        MsgAlerta.showError(context, 'Erro no Processamento', 'Não foi possível processar o gabarito: $e');
       }
     } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _imageFile = null;
+        });
+      }
     }
   }
 
@@ -178,7 +169,17 @@ class _CameraScreenState extends State<CameraScreen> {
             Container(
               color: Colors.black54,
               child: const Center(
-                child: CircularProgressIndicator(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text(
+                      'Processando...',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],

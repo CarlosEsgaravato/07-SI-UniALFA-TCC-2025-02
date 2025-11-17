@@ -1,19 +1,18 @@
-// lib/models/turma.dart
 import 'package:hackathonflutter/models/questao.dart';
 import 'package:hackathonflutter/models/resposta.dart';
 
 class Turma {
   final int id;
   final String nome;
-  final int ano; // Alterado de String para int
-  final String periodo; // Adicionado
-  final int disciplinaId; // Adicionado
-  final String disciplinaNome; // Adicionado
-  final int professorId; // Adicionado
-  final bool ativa; // Adicionado
-  final String professorNome; // Adicionado
-  final int totalAlunos; // Adicionado
-  final String descricao; // Adicionado
+  final int ano;
+  final String periodo;
+  final int disciplinaId;
+  final String disciplinaNome;
+  final int professorId;
+  final bool ativa;
+  final String professorNome;
+  final int totalAlunos;
+  final String descricao;
 
   Turma({
     required this.id,
@@ -41,7 +40,6 @@ class Turma {
       ativa: json['ativa'],
       professorNome: json['professorNome'],
       totalAlunos: json['totalAlunos'],
-      // MODIFICAÇÃO AQUI: Garante que 'descricao' seja sempre uma String
       descricao: json['descricao']?.toString() ?? '',
     );
   }

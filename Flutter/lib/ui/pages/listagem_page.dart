@@ -1,4 +1,3 @@
-// lib/ui/pages/listagem_page.dart
 import 'package:flutter/material.dart';
 import 'package:hackathonflutter/models/aluno.dart';
 import 'package:hackathonflutter/models/prova.dart';
@@ -13,7 +12,6 @@ import 'package:hackathonflutter/ui/widgets/circulo_espera.dart';
 import 'package:hackathonflutter/ui/widgets/msg_alerta.dart';
 import 'package:provider/provider.dart';
 
-// Enums (sem alteração)
 enum ListagemModo { Professor, Admin }
 enum ListagemView { Professores, Disciplinas, Provas, Alunos }
 
@@ -32,29 +30,21 @@ class ListagemPage extends StatefulWidget {
 }
 
 class _ListagemPageState extends State<ListagemPage> {
-  // --- Declarações de Serviços e Estados ---
   late AvaliacaoService _avaliacaoService;
   late AlunoService _alunoService;
   late ProfessorService _professorService;
   late DisciplinaService _disciplinaService;
-
   late ListagemView _currentView;
   String _appBarTitle = 'Carregando...';
   bool _carregando = true;
-
   List<Professor> _professores = [];
   List<Disciplina> _disciplinas = [];
   List<Prova> _provas = [];
   List<Aluno> _alunos = [];
-
-  // NOVO: Armazena os IDs dos alunos que já responderam
   Set<int> _alunosComResposta = {};
-
   Professor? _professorSelecionado;
   Disciplina? _disciplinaSelecionada;
   Prova? _provaSelecionada;
-
-  // --- Métodos de Lógica (initState, carregamento, _onBackPressed) ---
 
   @override
   void initState() {
@@ -64,7 +54,6 @@ class _ListagemPageState extends State<ListagemPage> {
     _professorService = Provider.of<ProfessorService>(context, listen: false);
     _disciplinaService = Provider.of<DisciplinaService>(context, listen: false);
 
-    // Define o estado inicial baseado no MODO (Admin ou Professor)
     if (widget.modo == ListagemModo.Admin) {
       _currentView = ListagemView.Professores;
       _appBarTitle = 'Professores';
@@ -128,17 +117,12 @@ class _ListagemPageState extends State<ListagemPage> {
   Future<void> _carregarAlunos(int turmaId) async {
     setState(() {
       _carregando = true;
-      _alunosComResposta.clear(); // Limpa os status anteriores
+      _alunosComResposta.clear();
     });
 
     try {
-      // 1. Busca os alunos da turma (como antes)
       final alunosPromise = _alunoService.buscarAlunosPorTurma(turmaId);
-
-      // 2. Busca os IDs dos alunos que responderam ESTA prova
       final respostasPromise = _avaliacaoService.buscarIdsAlunosComResposta(_provaSelecionada!.id);
-
-      // 3. Espera ambas as chamadas terminarem
       final results = await Future.wait([alunosPromise, respostasPromise]);
 
       _alunos = results[0] as List<Aluno>;
@@ -183,9 +167,6 @@ class _ListagemPageState extends State<ListagemPage> {
     }
     return true;
   }
-
-
-  // --- Métodos de BUILD DA UI (Com melhorias visuais) ---
 
   Widget _buildProfessoresList() {
     if (_professores.isEmpty) {
@@ -304,7 +285,6 @@ class _ListagemPageState extends State<ListagemPage> {
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () {
               if (widget.isViewingGabarito) {
-                // ... (lógica de ver gabarito)
               } else {
                 setState(() {
                   _provaSelecionada = prova;
@@ -320,7 +300,6 @@ class _ListagemPageState extends State<ListagemPage> {
     );
   }
 
-  // MÉTODO ATUALIZADO (para mostrar status e recarregar no pop)
   Widget _buildAlunosList() {
     if (_alunos.isEmpty) {
       return const Center(child: Text('Nenhum aluno encontrado para esta turma.'));
@@ -352,8 +331,6 @@ class _ListagemPageState extends State<ListagemPage> {
               'Email: ${aluno.email}',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-
-            // NOVO TRAILING: Mostra um Chip se já respondeu
             trailing: jaRespondeu
                 ? Chip(
               label: Text('Enviado', style: TextStyle(color: Colors.white, fontSize: 12)),
@@ -365,7 +342,6 @@ class _ListagemPageState extends State<ListagemPage> {
 
             onTap: () {
               if (_provaSelecionada != null) {
-                // Navega para a GabaritoPage (que agora carregará as respostas)
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -376,8 +352,6 @@ class _ListagemPageState extends State<ListagemPage> {
                     ),
                   ),
                 ).then((_) {
-                  // QUANDO VOLTAR DA GABARITO PAGE:
-                  // Recarrega os alunos para atualizar o status "Respondido"
                   if (_provaSelecionada != null && _disciplinaSelecionada != null) {
                     _carregarAlunos(_disciplinaSelecionada!.turma.id);
                   }
@@ -392,7 +366,6 @@ class _ListagemPageState extends State<ListagemPage> {
     );
   }
 
-  // --- Método Build Principal (Sem Alterações) ---
   @override
   Widget build(BuildContext context) {
     return PopScope(

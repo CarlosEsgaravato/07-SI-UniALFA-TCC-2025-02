@@ -1,4 +1,3 @@
-// lib/models/resposta_simples_dto.dart
 class RespostaSimplesDTO {
   final String numeroQuestao;
   final String alternativaEscolhida;
@@ -10,7 +9,6 @@ class RespostaSimplesDTO {
 
   factory RespostaSimplesDTO.fromJson(Map<String, dynamic> json) {
     return RespostaSimplesDTO(
-      //
       numeroQuestao: json['numeroQuestao']?.toString() ?? '?',
       alternativaEscolhida: json['alternativaEscolhida'] ?? '',
     );
