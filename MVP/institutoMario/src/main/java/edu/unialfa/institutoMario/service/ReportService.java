@@ -19,6 +19,12 @@ import com.itextpdf.layout.element.Paragraph;
 import edu.unialfa.institutoMario.model.Evento;
 import java.time.format.DateTimeFormatter;
 import edu.unialfa.institutoMario.model.Prova;
+import edu.unialfa.institutoMario.dto.NotaPorDisciplinaDTO;
+import edu.unialfa.institutoMario.dto.NotaDTO;
+import java.math.BigDecimal;
+import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.layout.properties.TextAlignment;
+import java.math.RoundingMode;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -331,6 +337,109 @@ public class ReportService {
                         prova.getDisciplina().getNome() : "-");
                 table.addCell(prova.getDisciplina() != null && prova.getDisciplina().getProfessor() != null ?
                         prova.getDisciplina().getProfessor().getUsuario().getNome() : "Não atribuído");
+            }
+
+            document.add(table);
+        }
+    }
+
+    // RELATÓRIO: NOTAS POR ALUNO
+
+    public void gerarExcelNotasPorAluno(List<NotaPorDisciplinaDTO> notasAgrupadas, String alunoNome, HttpServletResponse response) throws IOException {
+        setResponseHeaders(response, "application/octet-stream", ".xlsx", "notas_" + alunoNome.replace(" ", "_"));
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            XSSFSheet sheet = workbook.createSheet("Notas");
+
+            // Estilo para cabeçalho
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            // Título com nome do aluno
+            Row titleRow = sheet.createRow(0);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("Relatório de Notas - " + alunoNome);
+            titleCell.setCellStyle(headerStyle);
+            sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, 3));
+
+            // Cabeçalho da tabela (linha 2)
+            Row headerRow = sheet.createRow(2);
+            String[] headers = {"Disciplina", "Data", "Nota", "Status"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Formatter para formatar a data
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            int rowNum = 3;
+            for (NotaPorDisciplinaDTO agrupamento : notasAgrupadas) {
+                for (NotaDTO nota : agrupamento.getNotas()) {
+                    Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(nota.getDisciplinaNome());
+                    row.createCell(1).setCellValue(nota.getData() != null ?
+                            nota.getData().format(formatter) : "-");
+                    row.createCell(2).setCellValue(nota.getNotaTotal().doubleValue());
+
+                    // Calcula o status: >= 7 = Acima da média, < 7 = Abaixo da média
+                    String status = nota.getNotaTotal().compareTo(new BigDecimal("7.0")) >= 0 ?
+                            "Acima da média" : "Abaixo da média";
+                    row.createCell(3).setCellValue(status);
+                }
+            }
+
+            // Auto-size colunas
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    public void gerarPdfNotasPorAluno(List<NotaPorDisciplinaDTO> notasAgrupadas, String alunoNome, HttpServletResponse response) throws IOException {
+        setResponseHeaders(response, "application/pdf", ".pdf", "notas_" + alunoNome.replace(" ", "_"));
+
+        try (PdfWriter writer = new PdfWriter(response.getOutputStream());
+             PdfDocument pdf = new PdfDocument(writer);
+             Document document = new Document(pdf)) {
+
+            // Título
+            document.add(new Paragraph("Relatório de Notas por Aluno").setBold().setFontSize(18));
+            document.add(new Paragraph("Aluno: " + alunoNome).setFontSize(12).setMarginBottom(20));
+
+            // Tabela principal
+            float[] columnWidths = {3, 2, 1.5f, 2};
+            Table table = new Table(UnitValue.createPercentArray(columnWidths));
+            table.setWidth(UnitValue.createPercentValue(100));
+            table.setMarginTop(20);
+
+            // Cabeçalho
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Disciplina").setBold()));
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Data").setBold()));
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Nota").setBold()));
+            table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Status").setBold()));
+
+            // Formatter para formatar a data
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            // Dados agrupados por disciplina
+            for (NotaPorDisciplinaDTO agrupamento : notasAgrupadas) {
+                for (NotaDTO nota : agrupamento.getNotas()) {
+                    table.addCell(nota.getDisciplinaNome());
+                    table.addCell(nota.getData() != null ?
+                            nota.getData().format(formatter) : "-");
+                    table.addCell(nota.getNotaTotal().toString());
+
+                    // Calcula o status
+                    String status = nota.getNotaTotal().compareTo(new BigDecimal("7.0")) >= 0 ?
+                            "Acima da média" : "Abaixo da média";
+                    table.addCell(status);
+                }
             }
 
             document.add(table);
