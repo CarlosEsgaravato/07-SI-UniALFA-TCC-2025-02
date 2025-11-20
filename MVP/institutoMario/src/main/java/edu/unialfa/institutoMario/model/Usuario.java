@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -36,6 +37,12 @@ public class Usuario implements UserDetails {
 
     @Column(unique = true)
     private String email;
+
+    // ===== CAMPOS PARA RECUPERAÇÃO DE SENHA =====
+
+    private String resetPasswordToken;
+
+    private LocalDateTime resetPasswordTokenExpiry;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

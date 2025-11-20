@@ -2,7 +2,7 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Instituto Mário Gazin</title>
+    <title>Recuperar Senha - Instituto Mário Gazin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap + Icons -->
@@ -36,37 +36,53 @@
         <!-- Lado direito -->
         <div class="col-md-6 d-flex justify-content-center align-items-center bg-white">
             <div class="login-box shadow p-4 rounded bg-white">
-                <h3 class="text-center text-primary fw-bold mb-4">Bem-vindo</h3>
-                <p class="text-center text-muted">Entre com suas credenciais para acessar o sistema</p>
+                <h3 class="text-center text-primary fw-bold mb-3">Recuperar Senha</h3>
+                <p class="text-center text-muted mb-4">
+                    <i class="bi bi-envelope me-1"></i>
+                    Digite seu e-mail para receber o link de recuperação
+                </p>
 
-                <!-- Mensagem de erro de login -->
-                <div th:if="${param.error}" class="alert alert-danger text-center" role="alert">
-                    Email/Usuário ou senha inválidos. Tente novamente.
+                <!-- Mensagem de erro -->
+                <div th:if="${mensagemErro}" class="alert alert-danger text-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${mensagemErro}"></span>
                 </div>
 
-                <!-- Mensagem de sucesso (após redefinir senha) -->
+                <!-- Mensagem de sucesso -->
                 <div th:if="${mensagemSucesso}" class="alert alert-success text-center" role="alert">
                     <i class="bi bi-check-circle me-2"></i>
                     <span th:text="${mensagemSucesso}"></span>
                 </div>
 
-                <form th:action="@{/login}" method="post">
+                <form th:action="@{/esqueci-senha}" method="post">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Usuário</label>
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Digite seu usuário" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Senha</label>
+                        <label for="email" class="form-label">E-mail</label>
                         <div class="input-group">
-                            <input type="password" id="password" name="password" class="form-control" placeholder="Digite sua senha" required>
-                            <span class="input-group-text"><i class="bi bi-eye"></i></span>
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email"
+                                   id="email"
+                                   name="email"
+                                   class="form-control"
+                                   placeholder="Digite seu e-mail cadastrado"
+                                   required>
                         </div>
+                        <small class="form-text text-muted">
+                            Enviaremos um link de recuperação para este e-mail.
+                        </small>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <a th:href="@{/esqueci-senha}" class="text-decoration-none text-primary small">Esqueceu a senha?</a>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-2"></i>
+                            Enviar Link de Recuperação
+                        </button>
                     </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Entrar</button>
+
+                    <div class="text-center">
+                        <a th:href="@{/login}" class="text-decoration-none text-secondary small">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Voltar para o login
+                        </a>
                     </div>
                 </form>
 

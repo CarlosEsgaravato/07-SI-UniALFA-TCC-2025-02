@@ -75,6 +75,7 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/login").permitAll()
+                        .requestMatchers("/esqueci-senha", "/recuperar-senha").permitAll()
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

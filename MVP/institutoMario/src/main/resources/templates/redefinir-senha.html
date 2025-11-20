@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Redefinir Senha - Instituto Mário Gazin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="login-body">
+
+<div class="container-fluid login-container">
+    <div class="row min-vh-100">
+        <!-- Lado esquerdo -->
+        <div class="col-md-6 d-flex flex-column justify-content-center align-items-center bg-light text-center p-5">
+            <img th:src="@{/images/logo2.png}" alt="Instituto Mário Gazin" class="login-logo mb-4">
+            <h2 class="text-primary fw-bold">Sistema de Gestão</h2>
+            <h5 class="text-muted">Instituto Mário Gazin</h5>
+            <p class="mt-3 text-secondary">Plataforma dedicada ao gerenciamento de alunos, professores e projetos educacionais</p>
+
+            <div class="mt-4 text-start w-75">
+                <div class="info-card shadow-sm p-3 mb-3 bg-white rounded">
+                    <h6 class="text-primary mb-1"><i class="bi bi-music-note-beamed me-2"></i>Orquestra Alfredo Gazin</h6>
+                    <small class="text-muted">Formação musical e desenvolvimento artístico</small>
+                </div>
+                <div class="info-card shadow-sm p-3 bg-white rounded">
+                    <h6 class="text-primary mb-1"><i class="bi bi-laptop me-2"></i>Aulas de Informática</h6>
+                    <small class="text-muted">Inclusão digital e capacitação tecnológica</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lado direito -->
+        <div class="col-md-6 d-flex justify-content-center align-items-center bg-white">
+            <div class="login-box shadow p-4 rounded bg-white">
+                <h3 class="text-center text-primary fw-bold mb-3">Redefinir Senha</h3>
+                <p class="text-center text-muted mb-4">
+                    <i class="bi bi-key me-1"></i>
+                    Digite sua nova senha
+                </p>
+
+                <!-- Mensagem de erro -->
+                <div th:if="${mensagemErro}" class="alert alert-danger text-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${mensagemErro}"></span>
+                </div>
+
+                <form th:action="@{/recuperar-senha}" method="post" id="formRedefinirSenha">
+                    <input type="hidden" name="token" th:value="${token}">
+
+                    <div class="mb-3">
+                        <label for="novaSenha" class="form-label">Nova Senha</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password"
+                                   id="novaSenha"
+                                   name="novaSenha"
+                                   class="form-control"
+                                   placeholder="Digite a nova senha"
+                                   minlength="6"
+                                   required>
+                            <button class="btn btn-outline-secondary" type="button" id="toggleNovaSenha">
+                                <i class="bi bi-eye" id="iconNovaSenha"></i>
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">
+                            A senha deve ter no mínimo 6 caracteres.
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirmarSenha" class="form-label">Confirmar Nova Senha</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                            <input type="password"
+                                   id="confirmarSenha"
+                                   name="confirmarSenha"
+                                   class="form-control"
+                                   placeholder="Confirme a nova senha"
+                                   minlength="6"
+                                   required>
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmarSenha">
+                                <i class="bi bi-eye" id="iconConfirmarSenha"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Indicador de força da senha -->
+                    <div class="mb-3">
+                        <div class="progress" style="height: 5px;">
+                            <div id="senhaForte" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small id="senhaForteMensagem" class="form-text text-muted"></small>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Redefinir Senha
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <a th:href="@{/login}" class="text-decoration-none text-secondary small">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Voltar para o login
+                        </a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle para mostrar/esconder senha
+    document.getElementById('toggleNovaSenha').addEventListener('click', function() {
+        const input = document.getElementById('novaSenha');
+        const icon = document.getElementById('iconNovaSenha');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    });
+
+    document.getElementById('toggleConfirmarSenha').addEventListener('click', function() {
+        const input = document.getElementById('confirmarSenha');
+        const icon = document.getElementById('iconConfirmarSenha');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    });
+
+    // Validação de força da senha
+    document.getElementById('novaSenha').addEventListener('input', function() {
+        const senha = this.value;
+        const progressBar = document.getElementById('senhaForte');
+        const mensagem = document.getElementById('senhaForteMensagem');
+
+        let forca = 0;
+        let texto = '';
+        let cor = '';
+
+        if (senha.length >= 6) forca += 25;
+        if (senha.length >= 8) forca += 25;
+        if (/[A-Z]/.test(senha)) forca += 25;
+        if (/[0-9]/.test(senha) || /[^A-Za-z0-9]/.test(senha)) forca += 25;
+
+        if (forca <= 25) {
+            texto = 'Senha fraca';
+            cor = 'bg-danger';
+        } else if (forca <= 50) {
+            texto = 'Senha média';
+            cor = 'bg-warning';
+        } else if (forca <= 75) {
+            texto = 'Senha boa';
+            cor = 'bg-info';
+        } else {
+            texto = 'Senha forte';
+            cor = 'bg-success';
+        }
+
+        progressBar.style.width = forca + '%';
+        progressBar.className = 'progress-bar ' + cor;
+        mensagem.textContent = texto;
+    });
+
+    // Validação de senhas iguais no submit
+    document.getElementById('formRedefinirSenha').addEventListener('submit', function(e) {
+        const novaSenha = document.getElementById('novaSenha').value;
+        const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+        if (novaSenha !== confirmarSenha) {
+            e.preventDefault();
+            alert('As senhas não coincidem. Por favor, verifique.');
+            return false;
+        }
+    });
+</script>
+
+</body>
+</html>

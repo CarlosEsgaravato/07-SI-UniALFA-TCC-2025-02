@@ -16,6 +16,8 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Image;
+import com.itextpdf.io.image.ImageDataFactory;
 import edu.unialfa.institutoMario.model.Evento;
 import java.time.format.DateTimeFormatter;
 import edu.unialfa.institutoMario.model.Prova;
@@ -24,9 +26,13 @@ import edu.unialfa.institutoMario.dto.NotaDTO;
 import java.math.BigDecimal;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import java.math.RoundingMode;
+import org.springframework.core.io.ClassPathResource;
+import com.itextpdf.io.image.ImageData;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,6 +40,55 @@ import java.util.List;
 
 @Service
 public class ReportService {
+
+    /**
+     * Adiciona o cabeçalho com logo e título ao documento PDF
+     */
+    private void adicionarCabecalhoPDF(Document document, String titulo) {
+        try {
+            // Carrega a logo do diretório static/images
+            ClassPathResource imgFile = new ClassPathResource("static/images/logo2.png");
+            InputStream inputStream = imgFile.getInputStream();
+            byte[] imageBytes = inputStream.readAllBytes();
+
+            ImageData imageData = ImageDataFactory.create(imageBytes);
+            Image logo = new Image(imageData);
+
+            // Ajusta o tamanho da logo
+            logo.scaleToFit(100, 50);
+            logo.setHorizontalAlignment(HorizontalAlignment.CENTER);
+            logo.setMarginBottom(10);
+
+            // Adiciona a logo
+            document.add(logo);
+
+            // Adiciona o título
+            Paragraph tituloRelatorio = new Paragraph(titulo)
+                    .setBold()
+                    .setFontSize(18)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(5);
+            document.add(tituloRelatorio);
+
+            // Adiciona subtítulo com nome da instituição
+            Paragraph subtitulo = new Paragraph("Instituto Mário Gazin")
+                    .setFontSize(12)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setFontColor(ColorConstants.DARK_GRAY)
+                    .setMarginBottom(20);
+            document.add(subtitulo);
+
+        } catch (Exception e) {
+            // Se não conseguir carregar a logo, apenas adiciona o título
+            System.err.println("Erro ao carregar logo: " + e.getMessage());
+            Paragraph tituloRelatorio = new Paragraph(titulo)
+                    .setBold()
+                    .setFontSize(18)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(20);
+            document.add(tituloRelatorio);
+        }
+    }
 
     private void setResponseHeaders(HttpServletResponse response, String contentType, String extension, String tipoRelatorio) {
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
@@ -91,7 +146,8 @@ public class ReportService {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            document.add(new Paragraph("Relatório de Alunos por Turma").setBold().setFontSize(18));
+            // Adiciona cabeçalho com logo
+            adicionarCabecalhoPDF(document, "Relatório de Alunos por Turma");
 
             float[] columnWidths = {4, 4, 3, 3};
             Table table = new Table(UnitValue.createPercentArray(columnWidths));
@@ -160,7 +216,8 @@ public class ReportService {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            document.add(new Paragraph("Relatório de Disciplinas por Turma").setBold().setFontSize(18));
+            // Adiciona cabeçalho com logo
+            adicionarCabecalhoPDF(document, "Relatório de Disciplinas por Turma");
 
             float[] columnWidths = {4, 3, 3};
             Table table = new Table(UnitValue.createPercentArray(columnWidths));
@@ -204,7 +261,6 @@ public class ReportService {
                 cell.setCellStyle(headerStyle);
             }
 
-            // Formatter para formatar a data
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
             int rowNum = 1;
@@ -234,7 +290,8 @@ public class ReportService {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            document.add(new Paragraph("Relatório de Eventos por Período").setBold().setFontSize(18));
+            // Adiciona cabeçalho com logo
+            adicionarCabecalhoPDF(document, "Relatório de Eventos por Período");
 
             float[] columnWidths = {3, 2, 2, 2};
             Table table = new Table(UnitValue.createPercentArray(columnWidths));
@@ -246,7 +303,6 @@ public class ReportService {
             table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Data").setBold()));
             table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Local").setBold()));
 
-            // Formatter para formatar a data
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
             for (Evento evento : eventos) {
@@ -284,7 +340,6 @@ public class ReportService {
                 cell.setCellStyle(headerStyle);
             }
 
-            // Formatter para formatar a data
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
             int rowNum = 1;
@@ -314,7 +369,8 @@ public class ReportService {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            document.add(new Paragraph("Relatório de Provas por Disciplina").setBold().setFontSize(18));
+            // Adiciona cabeçalho com logo
+            adicionarCabecalhoPDF(document, "Relatório de Provas por Disciplina");
 
             float[] columnWidths = {3, 2, 3, 3};
             Table table = new Table(UnitValue.createPercentArray(columnWidths));
@@ -326,7 +382,6 @@ public class ReportService {
             table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Disciplina").setBold()));
             table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Professor").setBold()));
 
-            // Formatter para formatar a data
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
             for (Prova prova : provas) {
@@ -351,20 +406,17 @@ public class ReportService {
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
             XSSFSheet sheet = workbook.createSheet("Notas");
 
-            // Estilo para cabeçalho
             CellStyle headerStyle = workbook.createCellStyle();
             Font headerFont = workbook.createFont();
             headerFont.setBold(true);
             headerStyle.setFont(headerFont);
 
-            // Título com nome do aluno
             Row titleRow = sheet.createRow(0);
             Cell titleCell = titleRow.createCell(0);
             titleCell.setCellValue("Relatório de Notas - " + alunoNome);
             titleCell.setCellStyle(headerStyle);
             sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, 3));
 
-            // Cabeçalho da tabela (linha 2)
             Row headerRow = sheet.createRow(2);
             String[] headers = {"Disciplina", "Data", "Nota", "Status"};
             for (int i = 0; i < headers.length; i++) {
@@ -373,7 +425,6 @@ public class ReportService {
                 cell.setCellStyle(headerStyle);
             }
 
-            // Formatter para formatar a data
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
             int rowNum = 3;
@@ -385,14 +436,12 @@ public class ReportService {
                             nota.getData().format(formatter) : "-");
                     row.createCell(2).setCellValue(nota.getNotaTotal().doubleValue());
 
-                    // Calcula o status: >= 7 = Acima da média, < 7 = Abaixo da média
                     String status = nota.getNotaTotal().compareTo(new BigDecimal("7.0")) >= 0 ?
                             "Acima da média" : "Abaixo da média";
                     row.createCell(3).setCellValue(status);
                 }
             }
 
-            // Auto-size colunas
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
@@ -408,26 +457,27 @@ public class ReportService {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            // Título
-            document.add(new Paragraph("Relatório de Notas por Aluno").setBold().setFontSize(18));
-            document.add(new Paragraph("Aluno: " + alunoNome).setFontSize(12).setMarginBottom(20));
+            // Adiciona cabeçalho com logo
+            adicionarCabecalhoPDF(document, "Relatório de Notas por Aluno");
 
-            // Tabela principal
+            // Adiciona nome do aluno
+            document.add(new Paragraph("Aluno: " + alunoNome)
+                    .setFontSize(12)
+                    .setBold()
+                    .setMarginBottom(20));
+
             float[] columnWidths = {3, 2, 1.5f, 2};
             Table table = new Table(UnitValue.createPercentArray(columnWidths));
             table.setWidth(UnitValue.createPercentValue(100));
             table.setMarginTop(20);
 
-            // Cabeçalho
             table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Disciplina").setBold()));
             table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Data").setBold()));
             table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Nota").setBold()));
             table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Status").setBold()));
 
-            // Formatter para formatar a data
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-            // Dados agrupados por disciplina
             for (NotaPorDisciplinaDTO agrupamento : notasAgrupadas) {
                 for (NotaDTO nota : agrupamento.getNotas()) {
                     table.addCell(nota.getDisciplinaNome());
@@ -435,7 +485,6 @@ public class ReportService {
                             nota.getData().format(formatter) : "-");
                     table.addCell(nota.getNotaTotal().toString());
 
-                    // Calcula o status
                     String status = nota.getNotaTotal().compareTo(new BigDecimal("7.0")) >= 0 ?
                             "Acima da média" : "Abaixo da média";
                     table.addCell(status);
