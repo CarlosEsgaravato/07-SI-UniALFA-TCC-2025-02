@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="index :: head">
+<head th:replace="~{index :: head}">
     <meta charset="UTF-8">
-    <title th:text="${usuario.id == null} ? 'Cadastrar Usuário' : 'Editar Usuário'">Formulário</title>
+    <title>Formulário</title>
 </head>
 <body>
-<div th:replace="index :: sidebar"></div>
+<div th:replace="~{index :: sidebar}"></div>
 
 <div class="main-content">
     <div class="container">
@@ -16,55 +16,88 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
-        <form th:action="@{/usuarios}" th:object="${usuario}" method="post" class="row g-3 needs-validation" novalidate>
-            <input type="hidden" th:field="*{id}"/>
+        <form th:action="@{/usuarios}" method="post" class="row g-3 needs-validation" novalidate>
+
+            <input type="hidden" name="id" th:value="${usuario.id}"/>
 
             <div class="col-md-6">
                 <label for="nome" class="form-label">Nome</label>
-                <input type="text" class="form-control" id="nome" th:field="*{nome}" required>
+                <input type="text" class="form-control" id="nome" name="nome" th:value="${usuario.nome}" required>
                 <div class="invalid-feedback">Por favor, preencha o nome.</div>
             </div>
 
             <div class="col-md-6"> <label for="email" class="form-label">E-mail</label>
-                <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                <input type="email" class="form-control" id="email" name="email" th:value="${usuario.email}" required>
                 <div class="invalid-feedback">E-mail inválido.</div>
             </div>
 
             <div class="col-md-6"> <label for="cpf" class="form-label">CPF</label>
-                <input type="text" class="form-control" id="cpf" th:field="*{cpf}" required maxlength="11">
+                <input type="text" class="form-control" id="cpf" name="cpf" th:value="${usuario.cpf}" required maxlength="11">
                 <div class="invalid-feedback">Preencha o CPF.</div>
             </div>
 
             <div class="col-md-6">
                 <label for="telefone" class="form-label">Telefone</label>
-                <input type="text" class="form-control" id="telefone" th:field="*{telefone}">
+                <input type="text" class="form-control" id="telefone" name="telefone" th:value="${usuario.telefone}">
             </div>
 
             <div class="col-md-6">
                 <label for="senha" class="form-label">Senha</label>
-                <input type="password" class="form-control" id="senha"
-                       th:field="*{senha}"
-                       placeholder="Digite a senha"
-                       th:if="${usuario.id == null}"
-                       required />
 
-                <input type="password" class="form-control" id="senha"
-                       th:field="*{senha}"
+                <input type="password" class="form-control" id="senha" name="senha"
+                       th:value="${usuario.senha}"
+                       placeholder="Digite a senha"
+                       th:if="${usuario.id == null}" required />
+
+                <input type="password" class="form-control" id="senha" name="senha"
                        placeholder="Deixe em branco para manter a atual"
                        th:unless="${usuario.id == null}" />
-                <div class="invalid-feedback">Informe uma senha.</div>
             </div>
 
             <div class="col-md-6">
                 <label for="tipoUsuario" class="form-label">Tipo de Usuário</label>
-                <select class="form-select" id="tipoUsuario" th:field="*{tipoUsuario.id}" required>
-                    <option disabled selected value="0">Selecione...</option>
-                    <option th:each="tipo : ${tipos}" th:value="${tipo.id}" th:text="${tipo.descricao}"></option>
+                <select class="form-select" id="tipoUsuario" name="tipoUsuario.id" onchange="verificarTipoUsuario()" required>
+                    <option disabled selected value="">Selecione...</option>
+                    <option th:each="tipo : ${tipos}"
+                            th:value="${tipo.id}"
+                            th:text="${tipo.descricao}"
+                            th:selected="${usuario.tipoUsuario != null and usuario.tipoUsuario.id == tipo.id}">
+                    </option>
                 </select>
                 <div class="invalid-feedback">Selecione um tipo.</div>
             </div>
 
-            <div class="col-12">
+            <div id="areaResponsavel" class="row g-3 border-top mt-4 pt-3 d-none">
+                <h4 class="mb-3">Dados do Responsável</h4>
+
+                <input type="hidden" name="respId" th:value="${responsavel.id}">
+
+                <div class="col-md-6">
+                    <label for="respNome" class="form-label">Nome do Responsável</label>
+                    <input type="text" class="form-control resp-field" id="respNome" name="respNome" th:value="${responsavel.nome}">
+                    <div class="invalid-feedback">Nome do responsável é obrigatório.</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="respCpf" class="form-label">CPF do Responsável</label>
+                    <input type="text" class="form-control resp-field" id="respCpf" name="respCpf" th:value="${responsavel.cpf}" maxlength="11">
+                    <div class="invalid-feedback">CPF do responsável é obrigatório.</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="respTelefone" class="form-label">Telefone do Responsável</label>
+                    <input type="text" class="form-control resp-field" id="respTelefone" name="respTelefone" th:value="${responsavel.telefone}">
+                    <div class="invalid-feedback">Telefone do responsável é obrigatório.</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="respEmail" class="form-label">E-mail do Responsável</label>
+                    <input type="email" class="form-control resp-field" id="respEmail" name="respEmail" th:value="${responsavel.email}">
+                    <div class="invalid-feedback">E-mail do responsável é obrigatório.</div>
+                </div>
+            </div>
+
+            <div class="col-12 mt-4">
                 <button type="submit" class="btn btn-success">
                     <i class="bi bi-save"></i> Salvar
                 </button>
@@ -75,6 +108,27 @@
 </div>
 
 <script>
+    function verificarTipoUsuario() {
+        const select = document.getElementById('tipoUsuario');
+        const areaResponsavel = document.getElementById('areaResponsavel');
+        const camposResponsavel = document.querySelectorAll('.resp-field');
+
+        // Verifica se o texto da opção selecionada contém "Aluno"
+        const textoSelecionado = select.options[select.selectedIndex].text;
+
+        if (textoSelecionado.toLowerCase().includes('aluno')) {
+            areaResponsavel.classList.remove('d-none');
+            camposResponsavel.forEach(campo => campo.setAttribute('required', 'required'));
+        } else {
+            areaResponsavel.classList.add('d-none');
+            camposResponsavel.forEach(campo => campo.removeAttribute('required'));
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        verificarTipoUsuario();
+    });
+
     (function () {
         'use strict';
         var forms = document.querySelectorAll('.needs-validation');

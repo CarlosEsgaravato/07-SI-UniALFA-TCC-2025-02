@@ -2,7 +2,9 @@ package edu.unialfa.institutoMario.controller;
 
 import edu.unialfa.institutoMario.model.Aluno;
 import edu.unialfa.institutoMario.model.Professor;
+import edu.unialfa.institutoMario.model.Responsavel;
 import edu.unialfa.institutoMario.model.Usuario;
+import edu.unialfa.institutoMario.repository.ResponsavelRepository;
 import edu.unialfa.institutoMario.service.AlunoService;
 import edu.unialfa.institutoMario.service.ProfessorService;
 import edu.unialfa.institutoMario.service.TipoUsuarioService;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.WebDataBinder;
 
 @Controller
 @AllArgsConstructor
@@ -22,6 +26,12 @@ public class UsuarioController {
     private final TipoUsuarioService tipoUsuarioService;
     private final ProfessorService professorService;
     private final AlunoService alunoService;
+    private final ResponsavelRepository responsavelRepository; // Injeção nova
+
+    @InitBinder("responsavel")
+    public void initBinder(WebDataBinder binder) {
+        binder.setFieldDefaultPrefix("responsavel.");
+    }
 
     @GetMapping
     public String listar(Usuario usuario, Model model) {
@@ -32,34 +42,60 @@ public class UsuarioController {
     @GetMapping("cadastrar")
     public String cadastrar(Model model) {
         model.addAttribute("usuario", new Usuario());
+        model.addAttribute("responsavel", new Responsavel()); // Enviar objeto vazio
         model.addAttribute("tipos", tipoUsuarioService.listarTodos());
         return "usuarios/form";
     }
 
     @PostMapping
-    public String salvar(Usuario usuario, Model model) {
+    public String salvar(Usuario usuario,
+                         Model model,
+                         // Recebemos os dados do Responsável separadamente
+                         @RequestParam(required = false) Long respId,
+                         @RequestParam(required = false) String respNome,
+                         @RequestParam(required = false) String respCpf,
+                         @RequestParam(required = false) String respTelefone,
+                         @RequestParam(required = false) String respEmail) {
+
         boolean emailJaExiste = usuarioService.existsByEmailAndIdNot(usuario.getEmail(), usuario.getId());
         boolean cpfJaExiste = usuarioService.existsByCpfAndIdNot(usuario.getCpf(), usuario.getId());
 
-        if (emailJaExiste || cpfJaExiste) {
+        String erroResponsavel = "";
+        Long tipoId = usuario.getTipoUsuario().getId();
+
+        // Validação manual usando as novas variáveis
+        if (tipoId == 3) { // Aluno
+            if (respNome == null || respNome.isEmpty()) erroResponsavel += "Nome do responsável é obrigatório. ";
+            if (respCpf == null || respCpf.isEmpty()) erroResponsavel += "CPF do responsável é obrigatório. ";
+            if (respTelefone == null || respTelefone.isEmpty()) erroResponsavel += "Telefone do responsável é obrigatório. ";
+            if (respEmail == null || respEmail.isEmpty()) erroResponsavel += "E-mail do responsável é obrigatório. ";
+        }
+
+        if (emailJaExiste || cpfJaExiste || !erroResponsavel.isEmpty()) {
             String mensagemErro = "";
-            if (emailJaExiste) {
-                mensagemErro += "O E-mail '" + usuario.getEmail() + "' já está cadastrado no sistema. ";
-            }
-            if (cpfJaExiste) {
-                mensagemErro += "O CPF '" + usuario.getCpf() + "' já está cadastrado no sistema. ";
-            }
+            if (emailJaExiste) mensagemErro += "O E-mail já existe. ";
+            if (cpfJaExiste) mensagemErro += "O CPF já existe. ";
+            mensagemErro += erroResponsavel;
 
             model.addAttribute("erroGeral", mensagemErro.trim());
             model.addAttribute("tipos", tipoUsuarioService.listarTodos());
+
+            // Recriamos o objeto Responsavel para devolver ao formulário em caso de erro
+            Responsavel respTemp = new Responsavel();
+            respTemp.setId(respId);
+            respTemp.setNome(respNome);
+            respTemp.setCpf(respCpf);
+            respTemp.setTelefone(respTelefone);
+            respTemp.setEmail(respEmail);
+            model.addAttribute("responsavel", respTemp);
+
             return "usuarios/form";
         }
 
         try {
             usuarioService.salvar(usuario);
-            Long tipoId = usuario.getTipoUsuario().getId();
 
-            if (tipoId == 2) {
+            if (tipoId == 2) { // Professor
                 if (alunoService.existsByUsuarioId(usuario.getId())) {
                     alunoService.deletarPorUsuarioId(usuario.getId());
                 }
@@ -68,23 +104,61 @@ public class UsuarioController {
                     professor.setUsuario(usuario);
                     professorService.salvar(professor);
                 }
-            } else if (tipoId == 3) {
+            } else if (tipoId == 3) { // Aluno
                 if (professorService.existsByUsuarioId(usuario.getId())) {
                     professorService.deletarPorUsuarioId(usuario.getId());
                 }
-                if (!alunoService.existsByUsuarioId(usuario.getId())) {
-                    Aluno aluno = new Aluno();
+
+                Aluno aluno = alunoService.buscarPorUsuarioId(usuario.getId());
+                if (aluno == null) {
+                    aluno = new Aluno();
                     aluno.setUsuario(usuario);
-                    alunoService.salvar(aluno);
                 }
-            } else {
+
+                // === LÓGICA MANUAL DO RESPONSÁVEL ===
+                Responsavel responsavelParaSalvar;
+
+                if (aluno.getResponsavel() != null) {
+                    // Caso A: Já tem responsável vinculado -> Atualiza o existente
+                    responsavelParaSalvar = aluno.getResponsavel();
+                } else if (respId != null) {
+                    // Caso B: Trazido do form por ID -> Busca no banco
+                    responsavelParaSalvar = responsavelRepository.findById(respId).orElse(new Responsavel());
+                } else {
+                    // Caso C: Novo
+                    responsavelParaSalvar = new Responsavel();
+                }
+
+                // Preenchemos com os dados que vieram das variáveis @RequestParam
+                responsavelParaSalvar.setNome(respNome);
+                responsavelParaSalvar.setCpf(respCpf);
+                responsavelParaSalvar.setTelefone(respTelefone);
+                responsavelParaSalvar.setEmail(respEmail);
+
+                // Salva
+                Responsavel responsavelSalvo = responsavelRepository.save(responsavelParaSalvar);
+
+                // Vincula
+                aluno.setResponsavel(responsavelSalvo);
+                alunoService.salvar(aluno);
+
+            } else { // Outros
                 alunoService.deletarPorUsuarioId(usuario.getId());
                 professorService.deletarPorUsuarioId(usuario.getId());
             }
             return "redirect:/usuarios";
         } catch (Exception e) {
-            model.addAttribute("erroGeral", "Erro interno ao salvar usuário: " + e.getMessage());
-            model.addAttribute("tipos", tipoUsuarioService.listarTodos()); // Recarrega tipos em caso de erro
+            model.addAttribute("erroGeral", "Erro interno: " + e.getMessage());
+            model.addAttribute("tipos", tipoUsuarioService.listarTodos());
+
+            // Devolve os dados em caso de erro (catch)
+            Responsavel respTemp = new Responsavel();
+            respTemp.setNome(respNome);
+            respTemp.setCpf(respCpf);
+            respTemp.setTelefone(respTelefone);
+            respTemp.setEmail(respEmail);
+            model.addAttribute("responsavel", respTemp);
+
             return "usuarios/form";
         }
     }
@@ -92,23 +166,28 @@ public class UsuarioController {
     @GetMapping("editar/{id}")
     public String editar(@PathVariable Long id, Model model) {
         Usuario usuario = usuarioService.buscarPorId(id);
-
         model.addAttribute("usuario", usuario);
-        model.addAttribute("tipos", tipoUsuarioService.listarTodos());
+        Aluno aluno = alunoService.buscarPorUsuarioId(id);
+        if (aluno != null && aluno.getResponsavel() != null) {
+            model.addAttribute("responsavel", aluno.getResponsavel());
+        } else {
+            model.addAttribute("responsavel", new Responsavel());
+        }
 
+        model.addAttribute("tipos", tipoUsuarioService.listarTodos());
         return "usuarios/form";
     }
 
     @GetMapping("deletar/{id}")
     public String deletar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-       try {
-           usuarioService.deletarPorId(id);
-           redirectAttributes.addFlashAttribute("sucesso", "Usuário deletado com sucesso!");
-       }catch (DataIntegrityViolationException e){
-           redirectAttributes.addFlashAttribute("erro", "Não foi possível excluir o usuário. Ele está vinculado a uma turma, projeto ou outro registro no sistema.");
-       }catch (Exception e ){
-           redirectAttributes.addFlashAttribute("erro", "Ocorreu um erro inesperado ao tentar excluir o usuário.");
-       }
+        try {
+            usuarioService.deletarPorId(id);
+            redirectAttributes.addFlashAttribute("sucesso", "Usuário deletado com sucesso!");
+        }catch (DataIntegrityViolationException e){
+            redirectAttributes.addFlashAttribute("erro", "Não foi possível excluir o usuário. Ele está vinculado a uma turma, projeto ou outro registro no sistema.");
+        }catch (Exception e ){
+            redirectAttributes.addFlashAttribute("erro", "Ocorreu um erro inesperado ao tentar excluir o usuário.");
+        }
         return "redirect:/usuarios";
     }
 

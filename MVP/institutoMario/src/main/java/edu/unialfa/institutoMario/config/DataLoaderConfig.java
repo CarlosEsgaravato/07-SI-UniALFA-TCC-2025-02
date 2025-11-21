@@ -1,7 +1,11 @@
 package edu.unialfa.institutoMario.config;
 
+import edu.unialfa.institutoMario.model.Aluno;
+import edu.unialfa.institutoMario.model.Responsavel;
 import edu.unialfa.institutoMario.model.TipoUsuario;
 import edu.unialfa.institutoMario.model.Usuario;
+import edu.unialfa.institutoMario.repository.AlunoRepository;
+import edu.unialfa.institutoMario.repository.ResponsavelRepository;
 import edu.unialfa.institutoMario.repository.TipoUsuarioRepository;
 import edu.unialfa.institutoMario.repository.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -16,6 +20,8 @@ public class DataLoaderConfig {
     public CommandLineRunner initDatabase(
             UsuarioRepository usuarioRepository,
             TipoUsuarioRepository tipoUsuarioRepository,
+            AlunoRepository alunoRepository,
+            ResponsavelRepository responsavelRepository,
             PasswordEncoder passwordEncoder) {
 
         return args -> {
@@ -47,22 +53,33 @@ public class DataLoaderConfig {
                 admin.setEmail("admin@unialfa.edu");
                 admin.setTelefone("62999999999");
                 admin.setTipoUsuario(tipoAdmin);
-                admin.setSenha(passwordEncoder.encode("123456")); // Senha original do admin
+                admin.setSenha(passwordEncoder.encode("123456"));
                 usuarioRepository.save(admin);
                 System.out.println("Usuário 'admin' inserido com sucesso.");
             } else {
                 System.out.println("Usuário 'admin' já existe.");
             }
             if (usuarioRepository.findByCpf("11122233344") == null) {
-                Usuario aluno = new Usuario();
-                aluno.setNome("Aluno Padrão");
-                aluno.setCpf("11122233344");
-                aluno.setEmail("aluno@unialfa.edu");
-                aluno.setTelefone("62988888888");
-                aluno.setTipoUsuario(tipoAluno);
-                aluno.setSenha(passwordEncoder.encode("12345")); // Senha padrão solicitada
-                usuarioRepository.save(aluno);
-                System.out.println("Usuário 'aluno' inserido com sucesso.");
+                // a) Criar o Usuário (Login)
+                Usuario usuarioAluno = new Usuario();
+                usuarioAluno.setNome("Aluno Padrão");
+                usuarioAluno.setCpf("11122233344");
+                usuarioAluno.setEmail("aluno@unialfa.edu");
+                usuarioAluno.setTelefone("62988888888");
+                usuarioAluno.setTipoUsuario(tipoAluno);
+                usuarioAluno.setSenha(passwordEncoder.encode("12345"));
+                usuarioAluno = usuarioRepository.save(usuarioAluno);
+                Responsavel responsavel = new Responsavel();
+                responsavel.setNome("Mãe do Aluno Padrão");
+                responsavel.setCpf("99988877766");
+                responsavel.setTelefone("62911111111");
+                responsavel.setEmail("mae.padrao@email.com");
+                responsavel = responsavelRepository.save(responsavel);
+                Aluno alunoEntity = new Aluno();
+                alunoEntity.setUsuario(usuarioAluno);       // Vincula ao usuário
+                alunoEntity.setResponsavel(responsavel);    // Vincula ao responsável
+                alunoRepository.save(alunoEntity);          // Salva o vínculo
+                System.out.println("Usuário 'aluno' e seu Responsável inseridos com sucesso.");
             } else {
                 System.out.println("Usuário 'aluno' já existe.");
             }
@@ -73,7 +90,7 @@ public class DataLoaderConfig {
                 professor.setEmail("professor@unialfa.edu");
                 professor.setTelefone("62977777777");
                 professor.setTipoUsuario(tipoProfessor);
-                professor.setSenha(passwordEncoder.encode("12345")); // Senha padrão solicitada
+                professor.setSenha(passwordEncoder.encode("12345"));
                 usuarioRepository.save(professor);
                 System.out.println("Usuário 'professor' inserido com sucesso.");
             } else {

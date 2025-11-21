@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Impressão de Autorizações</title>
+  <style>
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 20px;
+    }
+    .autorizacao-container {
+        border: 1px dashed #000;
+        padding: 30px;
+        margin-bottom: 40px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    h2 { text-align: center; text-transform: uppercase; margin-bottom: 30px; }
+    .campo { margin-bottom: 15px; line-height: 1.6; }
+    .destaque { font-weight: bold; }
+    .assinatura {
+        margin-top: 60px;
+        border-top: 1px solid #000;
+        width: 60%;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+        padding-top: 10px;
+    }
+
+    /* Configuração para impressão: Quebra de página após cada aluno */
+    @media print {
+        .page-break { page-break-after: always; }
+        body { padding: 0; margin: 0; }
+        .autorizacao-container { border: none; margin: 0; padding: 40px; height: 90vh; }
+        /* Ocultar botão de imprimir na hora da impressão */
+        .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print" style="text-align: center; padding: 20px; background: #f0f0f0; margin-bottom: 20px;">
+  <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+    🖨️ Imprimir Agora / Salvar como PDF
+  </button>
+</div>
+
+<div th:each="aluno : ${alunos}">
+
+  <div class="autorizacao-container">
+    <h2>Autorização de Saída Pedagógica</h2>
+
+    <p class="campo">
+      Eu, responsável legal pelo(a) aluno(a) <span class="destaque" th:text="${aluno.usuario.nome}">Nome do Aluno</span>,
+      matriculado na turma <span class="destaque" th:text="${aluno.turma.nome}">Turma</span>,
+      autorizo a sua participação no evento descrito abaixo:
+    </p>
+
+    <div style="background-color: #f9f9f9; padding: 15px; border: 1px solid #ddd; margin: 20px 0;">
+      <p><strong>Evento:</strong> <span th:text="${dados.tituloEvento}"></span></p>
+      <p><strong>Local:</strong> <span th:text="${dados.local}"></span></p>
+      <p><strong>Data:</strong> <span th:text="${#temporals.format(dados.dataEvento, 'dd/MM/yyyy')}"></span></p>
+      <p>
+        <strong>Horário de Saída:</strong> <span th:text="${dados.horarioSaida}"></span> |
+        <strong>Horário de Retorno (previsto):</strong> <span th:text="${dados.horarioRetorno}"></span>
+      </p>
+      <p th:if="${!#strings.isEmpty(dados.descricao)}">
+        <strong>Observações:</strong> <span th:text="${dados.descricao}"></span>
+      </p>
+    </div>
+
+    <p class="campo">
+      Estou ciente das normas da instituição e das responsabilidades do aluno durante o evento.
+    </p>
+
+    <div class="assinatura">
+      Assinatura do Responsável<br>
+      <small th:if="${aluno.responsavel != null}" th:text="'(' + ${aluno.responsavel.nome} + ')'"></small>
+    </div>
+
+    <p style="text-align: center; margin-top: 40px; font-size: 12px; color: #666;">
+      Instituto Mário Gazin - Sistema de Gestão Escolar
+    </p>
+  </div>
+
+  <div class="page-break"></div>
+</div>
+
+</body>
+</html>
