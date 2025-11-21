@@ -26,7 +26,6 @@ public class AlunoService {
     }
 
     public Aluno buscarPorId(Long id) {
-        // Ajustado para usar orElseThrow, mais seguro que .get()
         return repository.findById(id).orElseThrow(() -> new RuntimeException("Aluno não encontrado."));
     }
 
@@ -70,6 +69,10 @@ public class AlunoService {
             return java.util.Collections.emptyList();
         }
         return repository.findByTurmaId(turmaId);
+    }
+
+    public Aluno buscarPorUsuarioId(Long usuarioId) {
+        return repository.findByUsuarioId(usuarioId).orElse(null);
     }
 
 }

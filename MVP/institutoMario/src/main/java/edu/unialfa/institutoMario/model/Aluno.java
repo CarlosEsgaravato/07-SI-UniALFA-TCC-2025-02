@@ -21,4 +21,8 @@ public class Aluno {
     @JoinColumn(name = "id_turma")
     @JsonManagedReference
     private Turma turma;
+
+    @ManyToOne
+    @JoinColumn(name = "id_responsavel")
+    private Responsavel responsavel;
 }

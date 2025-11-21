@@ -94,6 +94,20 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN', 'PROFESSOR')">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="bi bi-file-earmark-check-fill display-4 text-primary mb-3"></i>
+
+                        <h5 class="card-title">Autorização de Saída / Evento</h5>
+                        <p class="card-text small text-muted">Gera autorizações para impressão (PDF) e envia solicitações por e-mail aos responsáveis.</p>
+
+                        <a th:href="@{/autorizacoes/nova}" class="btn btn-outline-primary stretched-link">
+                            <i class="bi bi-arrow-right-circle me-1"></i> Emitir
+                        </a>
+                    </div>
+                </div>
+            </div>
 
         </div>
     </div>
