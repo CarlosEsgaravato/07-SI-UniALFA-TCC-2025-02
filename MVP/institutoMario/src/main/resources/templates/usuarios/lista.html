@@ -32,51 +32,87 @@
     <div th:if="${sucesso}" class="alert alert-success" role="alert">
         <span th:text="${sucesso}"></span>
     </div>
-    <table class="table table-striped">
-        <thead class="table-header">
-        <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>CPF</th>
-            <th>Telefone</th>
-            <th>Tipo de Usuário</th>
-            <th>Ações</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="usuario : ${usuarios}">
-            <td th:text="${usuario.id}">ID</td>
-            <td th:text="${usuario.nome}">Nome</td>
-            <td th:text="${usuario.email}">Email</td>
 
-            <td data-field="cpf" th:text="${usuario.cpf}">CPF</td>
-            <td data-field="telefone" th:text="${usuario.telefone}">Telefone</td>
+    <!-- NOVA: Caixa de Pesquisa -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control"
+                               placeholder="Pesquisar por nome, email, CPF ou telefone...">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="bi bi-x-circle"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4 mt-2 mt-md-0">
+                    <div class="d-flex align-items-center justify-content-md-end">
+                        <span class="badge bg-primary" id="resultCount">
+                            <i class="bi bi-people-fill me-1"></i>
+                            <span id="countNumber" th:text="${#lists.size(usuarios)}">0</span> usuário(s)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <td th:text="${usuario.tipoUsuario.descricao}">Tipo</td>
-            <td>
-                <a th:href="@{/usuarios/editar/{id}(id=${usuario.id})}" class="btn btn-sm btn-warning me-1">
-                    <i class="bi bi-pencil-fill"></i>
-                </a>
+    <!-- Tabela de usuários -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover" id="usuariosTable">
+            <thead class="table-header">
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>CPF</th>
+                <th>Telefone</th>
+                <th>Tipo de Usuário</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody id="usuariosTableBody">
+            <tr th:each="usuario : ${usuarios}" class="usuario-row">
+                <td th:text="${usuario.id}">ID</td>
+                <td th:text="${usuario.nome}" class="searchable-name">Nome</td>
+                <td th:text="${usuario.email}" class="searchable-email">Email</td>
+                <td data-field="cpf" th:text="${usuario.cpf}" class="searchable-cpf">CPF</td>
+                <td data-field="telefone" th:text="${usuario.telefone}" class="searchable-telefone">Telefone</td>
+                <td th:text="${usuario.tipoUsuario.descricao}">Tipo</td>
+                <td>
+                    <a th:href="@{/usuarios/editar/{id}(id=${usuario.id})}" class="btn btn-sm btn-warning me-1">
+                        <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    <a th:href="@{/usuarios/deletar/{id}(id=${usuario.id})}"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('Tem certeza que deseja excluir este usuário?');">
+                        <i class="bi bi-trash-fill"></i>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 
-                <!-- Substituir o confirm() por um modal/alerta customizado é uma boa prática -->
-                <a th:href="@{/usuarios/deletar/{id}(id=${usuario.id})}"
-                   class="btn btn-sm btn-danger"
-                   onclick="return confirm('Tem certeza que deseja excluir este usuário?');">
-                    <i class="bi bi-trash-fill"></i>
-                </a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <!-- Mensagem quando não encontrar resultados -->
+    <div id="noResults" class="alert alert-info text-center" style="display: none;">
+        <i class="bi bi-info-circle me-2"></i>
+        Nenhum usuário encontrado com os critérios de pesquisa.
+    </div>
 </div>
 
-<!-- Script para formatar CPF e Telefone (Mantido) -->
+<!-- Script para formatar CPF e Telefone -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // CPF
         document.querySelectorAll("td[data-field='cpf']").forEach(td => {
-            const cpf = td.textContent.replace(/\D/g, ''); // remove tudo que não é número
+            const cpf = td.textContent.replace(/\D/g, '');
             if (cpf.length === 11) {
                 td.textContent = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
             }
@@ -89,6 +125,66 @@
                 td.textContent = tel.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
             } else if (tel.length === 10) {
                 td.textContent = tel.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+            }
+        });
+
+        // NOVA: Funcionalidade de Pesquisa
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearch');
+        const rows = document.querySelectorAll('.usuario-row');
+        const noResults = document.getElementById('noResults');
+        const countNumber = document.getElementById('countNumber');
+        const totalUsuarios = rows.length;
+
+        function performSearch() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const nome = row.querySelector('.searchable-name').textContent.toLowerCase();
+                const email = row.querySelector('.searchable-email').textContent.toLowerCase();
+                const cpf = row.querySelector('.searchable-cpf').textContent.toLowerCase();
+                const telefone = row.querySelector('.searchable-telefone').textContent.toLowerCase();
+
+                const match = nome.includes(searchTerm) ||
+                             email.includes(searchTerm) ||
+                             cpf.includes(searchTerm) ||
+                             telefone.includes(searchTerm);
+
+                if (match) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Atualiza contador
+            countNumber.textContent = visibleCount;
+
+            // Mostra/esconde mensagem de "sem resultados"
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        }
+
+        // Event listener para pesquisa em tempo real
+        searchInput.addEventListener('input', performSearch);
+
+        // Botão de limpar pesquisa
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            performSearch();
+            searchInput.focus();
+        });
+
+        // Permite pesquisar pressionando Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
             }
         });
     });

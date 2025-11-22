@@ -24,37 +24,117 @@
     <div th:if="${mensagemSucesso}" class="alert alert-success" role="alert" th:text="${mensagemSucesso}">
     </div>
 
-    <table class="table table-striped">
-        <thead class="table-header">
-        <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Alunos</th>
-            <th>Ações</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="turma : ${turmas}">
-            <td th:text="${turma.id}">1</td>
-            <td th:text="${turma.nome}">Turma A</td>
-            <td>
-                <a th:href="@{'/vinculo-aluno-turma/turma/' + ${turma.id}}" class="btn btn-sm btn-primary me-1" title="Cadastrar alunos">
-                    <i class="bi bi-plus-circle"></i>
-                </a>
-            </td>
-            <td>
-                <a class="btn btn-warning btn-sm" th:href="@{/turmas/editar/{id}(id=${turma.id})}"><i class="bi bi-pencil-square"></i></a>
-                <a class="btn btn-danger btn-sm" th:href="@{/turmas/deletar/{id}(id=${turma.id})}" onclick="return confirm('Confirma exclusão?');">
-                    <i class="bi bi-trash-fill"></i>
-                </a>
-            </td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(turmas)}">
-            <td colspan="4" class="text-center">Nenhuma turma cadastrada.</td>
-        </tr>
-        </tbody>
-    </table>
+    <!-- Caixa de Pesquisa -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control"
+                               placeholder="Pesquisar turmas por nome...">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="bi bi-x-circle"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4 mt-2 mt-md-0">
+                    <div class="d-flex align-items-center justify-content-md-end">
+                        <span class="badge bg-primary" id="resultCount">
+                            <i class="bi bi-book-fill me-1"></i>
+                            <span id="countNumber" th:text="${#lists.size(turmas)}">0</span> turma(s)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-header">
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Alunos</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody id="turmasTableBody">
+            <tr th:each="turma : ${turmas}" class="turma-row">
+                <td th:text="${turma.id}" class="searchable-id">1</td>
+                <td th:text="${turma.nome}" class="searchable-nome">Turma A</td>
+                <td>
+                    <a th:href="@{'/vinculo-aluno-turma/turma/' + ${turma.id}}" class="btn btn-sm btn-primary me-1" title="Cadastrar alunos">
+                        <i class="bi bi-plus-circle"></i>
+                    </a>
+                </td>
+                <td>
+                    <a class="btn btn-warning btn-sm" th:href="@{/turmas/editar/{id}(id=${turma.id})}">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                    <a class="btn btn-danger btn-sm" th:href="@{/turmas/deletar/{id}(id=${turma.id})}" onclick="return confirm('Confirma exclusão?');">
+                        <i class="bi bi-trash-fill"></i>
+                    </a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(turmas)}">
+                <td colspan="4" class="text-center">Nenhuma turma cadastrada.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mensagem quando não encontrar resultados -->
+    <div id="noResults" class="alert alert-info text-center" style="display: none;">
+        <i class="bi bi-info-circle me-2"></i>
+        Nenhuma turma encontrada com os critérios de pesquisa.
+    </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearch');
+        const rows = document.querySelectorAll('.turma-row');
+        const noResults = document.getElementById('noResults');
+        const countNumber = document.getElementById('countNumber');
+
+        function performSearch() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const id = row.querySelector('.searchable-id').textContent.toLowerCase();
+                const nome = row.querySelector('.searchable-nome').textContent.toLowerCase();
+
+                const match = id.includes(searchTerm) || nome.includes(searchTerm);
+
+                if (match) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            countNumber.textContent = visibleCount;
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        searchInput.addEventListener('input', performSearch);
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            performSearch();
+            searchInput.focus();
+        });
+    });
+</script>
+
 <script th:src="@{/js/sidebar-toggle.js}"></script>
 </body>
 </html>
