@@ -10,7 +10,5 @@ import java.util.Optional;
 public interface AlunoRepository extends JpaRepository<Aluno, Long> {
     boolean existsByUsuarioId(Long usuarioId);
     Optional<Aluno> findByUsuarioId(Long usuarioId);
-    List<Aluno> findByTurmaIsNull();
-    List<Aluno> findByTurmaId(Long turmaId);
     Optional<Aluno> findByUsuario(Usuario usuario);
 }

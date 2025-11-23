@@ -20,7 +20,17 @@
         </a>
     </div>
 
-    <!-- Caixa de Pesquisa -->
+    <div th:if="${mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span th:text="${mensagem}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${erro}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span th:text="${erro}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     <div class="card mb-3">
         <div class="card-body">
             <div class="row align-items-center">
@@ -98,7 +108,6 @@
         </table>
     </div>
 
-    <!-- Mensagem quando não encontrar resultados -->
     <div id="noResults" class="alert alert-info text-center" style="display: none;">
         <i class="bi bi-info-circle me-2"></i>
         Nenhuma prova encontrada com os critérios de pesquisa.

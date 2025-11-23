@@ -84,25 +84,20 @@ public class ProjetoController {
             return "projetos/formulario";
         }
 
-
         Projetos projetoParaSalvar;
-
-        if (projeto.getTurma() != null && projeto.getTurma().getId() != null) {
-            Turma turmaCompleta = turmaService.buscarPorId(projeto.getTurma().getId());
-            projeto.setTurma(turmaCompleta);
-        } else {
-            projeto.setTurma(null);
-        }
 
         if (projeto.getId() != null) {
             projetoParaSalvar = projetoService.bucarPorId(projeto.getId());
             projetoParaSalvar.setNomeProjeto(projeto.getNomeProjeto());
-            projetoParaSalvar.setTurma(projeto.getTurma());
+            projetoParaSalvar.setTurmas(projeto.getTurmas());
         } else {
             projetoParaSalvar = projeto;
-            projetoParaSalvar.setDocumentos(new ArrayList<>());
+            if (projetoParaSalvar.getDocumentos() == null) {
+                projetoParaSalvar.setDocumentos(new ArrayList<>());
+            }
         }
 
+        // --- (O código de upload de arquivos permanece igual) ---
         for (MultipartFile file : documentosFiles) {
             if (file != null && !file.isEmpty()) {
                 try {

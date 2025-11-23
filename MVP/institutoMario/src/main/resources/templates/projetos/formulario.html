@@ -1,91 +1,104 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{index :: head}">
-    <meta charset="UTF-8">
-    <title th:text="${projeto.id == null} ? 'Cadastrar Projeto' : 'Editar Projeto'"></title>
+  <meta charset="UTF-8">
+  <title>Instituto Mário Gazin - Projetos</title>
 </head>
 <body>
+
 <div th:replace="~{index :: sidebar}"></div>
 
 <div class="main-content">
-    <div class="container">
-        <h2 class="mb-4" th:text="${projeto.id == null} ? 'Cadastrar Projeto' : 'Editar Projeto'"></h2>
 
-        <form th:action="@{/projetos/salvar}" th:object="${projeto}" method="post" enctype="multipart/form-data" class="row g-3">
-            <input type="hidden" th:field="*{id}"/>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 th:text="${projeto.id != null} ? 'Editar Projeto' : 'Novo Projeto'">Novo Projeto</h2>
 
-            <div class="col-md-6">
-                <label for="nomeProjeto" class="form-label">Nome do Projeto</label>
-                <input type="text"
-                       class="form-control"
-                       id="nomeProjeto"
-                       th:field="*{nomeProjeto}"
-                       th:classappend="${#fields.hasErrors('nomeProjeto')} ? 'is-invalid' : ''"
-                       required>
-                <div class="invalid-feedback"
-                     th:if="${#fields.hasErrors('nomeProjeto')}"
-                     th:errors="*{nomeProjeto}">
-                    Mensagem de erro aqui.
-                </div>
-            </div>
+    <a th:if="${projeto.id != null}"
+       th:href="@{'/vinculo-projeto-turma/projeto/' + ${projeto.id}}"
+       class="btn btn-info text-white">
+      <i class="bi bi-people-fill me-2"></i> Gerenciar Turmas
+    </a>
+  </div>
 
-            <div class="col-md-6">
-                <label for="turma" class="form-label">Turma</label>
-                <select class="form-select"
-                        id="turma"
-                        th:field="*{turma.id}"
+  <form th:action="@{/projetos/salvar}"
+        th:object="${projeto}"
+        method="post"
+        enctype="multipart/form-data"
+        class="card p-4 shadow-sm border-0">
 
-                        th:classappend="${#fields.hasErrors('turma.id')} ? 'is-invalid' : ''"
-                        required>
-                    <option disabled selected value="">Selecione...</option>
-                    <option th:each="t : ${turmas}" th:value="${t.id}" th:text="${t.nome}"></option>
-                </select>
-                <div class="invalid-feedback"
-                     th:if="${#fields.hasErrors('turma.id')}"
-                     th:errors="*{turma.id}">
-                    Mensagem de erro aqui.
-                </div>
-            </div>
+    <input type="hidden" th:field="*{id}"/>
 
-            <div class="col-12">
-                <label for="documentosFiles" class="form-label">Anexar Documentos</label>
-                <input class="form-control" type="file" id="documentosFiles" name="documentosFiles" multiple>
-                <div class="form-text">Você pode selecionar múltiplos arquivos (PDF, DOCX, XLSX, etc.).</div>
-            </div>
-
-            <div class="col-12 mt-4" th:if="${projeto.id != null and not #lists.isEmpty(projeto.documentos)}">
-                <h5>Documentos Anexados:</h5>
-                <ul class="list-group">
-                    <li class="list-group-item d-flex justify-content-between align-items-center" th:each="doc : ${projeto.documentos}">
-                        <div>
-                            <i class="bi bi-file-earmark-text me-2 text-primary"></i>
-                            <a th:href="@{/uploads/{filename}(filename=${doc.urlArquivo})}"
-                               th:text="${doc.nomeArquivo}"
-                               target="_blank"
-                               class="text-decoration-none">
-                            </a>
-                        </div>
-
-                        <a th:href="@{'/projetos/documento/deletar/' + ${doc.id}}"
-                           class="btn btn-danger btn-sm p-0 px-1"
-                           title="Excluir Documento"
-                           onclick="return confirm('Tem certeza que deseja remover o documento: ' + this.previousElementSibling.firstElementChild.textContent + '?');">
-                            <i class="bi bi-x-circle-fill"></i>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-
-            <div class="col-12 mt-3">
-                <button type="submit" class="btn btn-success">
-                    <i class="bi bi-save"></i> Salvar
-                </button>
-                <a th:href="@{/projetos}" class="btn btn-secondary">Cancelar</a>
-            </div>
-        </form>
+    <div class="mb-4">
+      <label for="nomeProjeto" class="form-label fw-bold">Nome do Projeto</label>
+      <input type="text"
+             class="form-control"
+             id="nomeProjeto"
+             th:field="*{nomeProjeto}"
+             placeholder="Ex: Feira de Ciências 2025"
+             required
+             th:classappend="${#fields.hasErrors('nomeProjeto')} ? 'is-invalid' : ''">
+      <div class="invalid-feedback" th:errors="*{nomeProjeto}"></div>
     </div>
+
+    <div class="mb-4">
+      <label for="documentosFiles" class="form-label fw-bold">
+        <i class="bi bi-paperclip"></i> Anexar Documentos
+      </label>
+      <input class="form-control"
+             type="file"
+             id="documentosFiles"
+             name="documentosFiles"
+             multiple>
+      <div class="form-text text-muted">
+        Selecione um ou mais arquivos para adicionar ao projeto (PDF, Docx, Imagens).
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-lg"></i> Salvar Projeto
+      </button>
+      <a th:href="@{/projetos}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+
+  <div th:if="${projeto.id != null and not #lists.isEmpty(projeto.documentos)}" class="mt-5">
+    <h4 class="border-bottom pb-2 mb-3">Documentos Anexados</h4>
+
+    <div class="list-group shadow-sm">
+      <div class="list-group-item d-flex justify-content-between align-items-center"
+           th:each="doc : ${projeto.documentos}">
+
+        <div class="d-flex align-items-center">
+          <div class="me-3 text-primary fs-4">
+            <i class="bi bi-file-earmark-text"></i>
+          </div>
+          <div>
+            <h6 class="mb-0" th:text="${doc.nomeArquivo}">Arquivo.pdf</h6>
+            <small class="text-muted" th:text="${doc.tipoArquivo}">application/pdf</small>
+          </div>
+        </div>
+
+        <div>
+          <a th:href="@{/uploads/{filename}(filename=${doc.urlArquivo})}"
+             target="_blank"
+             class="btn btn-sm btn-outline-primary me-1"
+             title="Baixar">
+            <i class="bi bi-download"></i>
+          </a>
+          <a th:href="@{'/projetos/documento/deletar/' + ${doc.id}}"
+             class="btn btn-sm btn-outline-danger"
+             onclick="return confirm('Tem certeza que deseja excluir este documento permanentemente?');"
+             title="Excluir">
+            <i class="bi bi-trash"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
+
 <script th:src="@{/js/sidebar-toggle.js}"></script>
 </body>
 </html>
