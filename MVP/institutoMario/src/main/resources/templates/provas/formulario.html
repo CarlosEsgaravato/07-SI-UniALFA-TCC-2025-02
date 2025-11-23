@@ -23,6 +23,11 @@
             <label class="form-label" for="data">Data</label>
             <input class="form-control" id="data" name="data" type="date"
                    th:value="${prova.data != null ? #temporals.format(prova.data, 'yyyy-MM-dd') : ''}" required />
+
+            <div id="avisoData" class="alert alert-warning mt-2" style="display: none;" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <strong>Atenção:</strong> A data selecionada é anterior à data de hoje.
+            </div>
         </div>
 
         <div class="mb-3">
@@ -39,6 +44,34 @@
         <a th:href="@{/provas}" class="btn btn-secondary ms-2">Cancelar</a>
     </form>
 </div>
+
 <script th:src="@{/js/sidebar-toggle.js}"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputData = document.getElementById('data');
+        const aviso = document.getElementById('avisoData');
+
+        function verificarData() {
+            if (!inputData.value) {
+                aviso.style.display = 'none';
+                return;
+            }
+            const partes = inputData.value.split('-');
+            const dataSelecionada = new Date(partes[0], partes[1] - 1, partes[2]);
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+
+            if (dataSelecionada < hoje) {
+                aviso.style.display = 'block';
+            } else {
+                aviso.style.display = 'none';
+            }
+        }
+        inputData.addEventListener('change', verificarData);
+        verificarData();
+    });
+</script>
+
 </body>
 </html>
