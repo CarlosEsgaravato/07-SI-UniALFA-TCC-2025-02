@@ -3,6 +3,7 @@ package edu.unialfa.institutoMario.controller;
 import edu.unialfa.institutoMario.model.Aluno;
 import edu.unialfa.institutoMario.model.Disciplina;
 import edu.unialfa.institutoMario.model.Prova;
+import edu.unialfa.institutoMario.model.Turma;
 import edu.unialfa.institutoMario.model.Usuario;
 import edu.unialfa.institutoMario.service.*;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 import java.io.ByteArrayInputStream;
@@ -88,8 +90,13 @@ public class ProvaController {
     }
 
     @GetMapping("/deletar/{id}")
-    public String deletar(@PathVariable Long id) {
-        provaService.deletarPorId(id);
+    public String deletar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            provaService.deletarPorId(id);
+            redirectAttributes.addFlashAttribute("mensagem", "Prova excluída com sucesso!");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("erro", e.getMessage());
+        }
         return "redirect:/provas";
     }
 
@@ -97,12 +104,11 @@ public class ProvaController {
     public String listarProvasParaResponder(Model model, @AuthenticationPrincipal Usuario usuarioLogado) {
         Aluno aluno = alunoService.buscarPorUsuario(usuarioLogado);
         Long alunoId = aluno.getId();
-        List<Prova> provas;
-        if(aluno.getTurma() != null){
-            Long turmaId = aluno.getTurma().getId();
-            provas = provaService.listarPorTurma(turmaId);
-        }else {
-            provas = new ArrayList<>();
+        List<Prova> provas = new ArrayList<>();
+        if(aluno.getTurmas() != null && !aluno.getTurmas().isEmpty()){
+            for(Turma turma : aluno.getTurmas()){
+                provas.addAll(provaService.listarPorTurma(turma.getId()));
+            }
         }
 
         List<Long> provasRespondidasIds = respostaAlunoService.buscarIdsDeProvasRespondidas(alunoId);

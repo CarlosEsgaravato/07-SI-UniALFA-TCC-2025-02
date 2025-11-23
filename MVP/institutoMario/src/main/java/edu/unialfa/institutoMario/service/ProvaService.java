@@ -5,6 +5,7 @@ import edu.unialfa.institutoMario.repository.ProvaRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import edu.unialfa.institutoMario.repository.RespostaAlunoRepository;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ProvaService {
     private final ProvaRepository repository;
+    private final RespostaAlunoRepository respostaAlunoRepository;
 
     @Transactional
     public void salvar(Prova prova) {
@@ -30,6 +32,10 @@ public class ProvaService {
     }
 
     public void deletarPorId(Long id) {
+        boolean existeResposta = respostaAlunoRepository.existsByProvaId(id);
+        if (existeResposta) {
+            throw new RuntimeException("Não é possível excluir a prova. Já existem alunos que responderam a esta prova.");
+        }
         repository.deleteById(id);
     }
 

@@ -3,6 +3,10 @@ package edu.unialfa.institutoMario.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -17,10 +21,14 @@ public class Aluno {
     @JsonManagedReference
     private Usuario usuario;
 
-    @ManyToOne
-    @JoinColumn(name = "id_turma")
-    @JsonManagedReference
-    private Turma turma;
+    @ManyToMany
+    @JoinTable(
+            name = "aluno_turmas",
+            joinColumns = @JoinColumn(name = "aluno_id"),
+            inverseJoinColumns = @JoinColumn(name = "turma_id")
+    )
+    @ToString.Exclude
+    private List<Turma> turmas = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "id_responsavel")
