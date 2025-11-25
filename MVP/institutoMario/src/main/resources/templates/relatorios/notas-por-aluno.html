@@ -23,7 +23,11 @@
                 </a>
             </div>
         </div>
-
+        <div th:if="${erro}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${erro}">Erro ao processar solicitação.</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         <div class="card shadow-sm mb-4">
             <div class="card-header">
                 <i class="bi bi-filter me-1"></i> Filtros do Relatório
