@@ -254,6 +254,13 @@ public class RelatorioController {
             @RequestParam(required = false) Long alunoId,
             Model model
     ) {
+        if (turmaId == null || alunoId == null) {
+            model.addAttribute("erro", "É obrigatório selecionar uma Turma e um Aluno para gerar o relatório.");
+            model.addAttribute("turmas", turmaService.listarTodas());
+            model.addAttribute("turmaSelecionadaId", null);
+            model.addAttribute("alunoSelecionadoId", null);
+            return "relatorios/notas-por-aluno";
+        }
         List<NotaPorDisciplinaDTO> notasAgrupadas = notaService.buscarNotasDoAlunoAgrupadas(alunoId);
 
         // Busca o nome do aluno para exibir no título
