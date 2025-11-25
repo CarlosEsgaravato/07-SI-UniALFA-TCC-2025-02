@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -64,8 +66,15 @@ public class DisciplinaController {
     }
 
     @GetMapping("/deletar/{id}")
-    public String deletar(@PathVariable Long id) {
-        disciplinaService.deletarPorId(id);
+    public String deletar(@PathVariable Long id, RedirectAttributes attr) {
+        try {
+            disciplinaService.deletarPorId(id);
+            attr.addFlashAttribute("successMessage", "Disciplina excluída com sucesso.");
+        } catch (DataIntegrityViolationException e) {
+            attr.addFlashAttribute("errorMessage", "Não é possível excluir esta disciplina pois existem provas, turmas ou professor vinculados a ela.");
+        } catch (Exception e) {
+            attr.addFlashAttribute("errorMessage", "Ocorreu um erro ao tentar excluir a disciplina.");
+        }
         return "redirect:/disciplinas";
     }
 }
