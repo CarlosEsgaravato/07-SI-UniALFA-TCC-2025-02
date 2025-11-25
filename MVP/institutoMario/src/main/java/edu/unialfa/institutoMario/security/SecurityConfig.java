@@ -41,19 +41,17 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain apiSecurityChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                .securityMatcher("/api/**") // Aplica-se a tudo /api
+                .securityMatcher("/api/**")
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults()) // O seu CorsConfig será usado aqui
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Login é público
-                        .anyRequest().authenticated() // O resto (incluindo POST /api/correcao) é protegido
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(apiAuthenticationEntryPoint))
-
-                // Adiciona o seu filtro para validar o token
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .build();
@@ -63,20 +61,19 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain webSecurityChain(HttpSecurity httpSecurity) throws Exception {
-        // O seu 'webSecurityChain' para o site Admin
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // --- AQUI ESTÁ A CORREÇÃO DO ERRO DE DIGITAÇÃO ---
-                .cors(Customizer.withDefaults()) // Corrigido de CustomUi_t_omizer
-                // --- FIM DA CORREÇÃO ---
-
+                .cors(Customizer.withDefaults())
                 .headers(header -> header.frameOptions(config -> config.sameOrigin()))
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/login").permitAll()
                         .requestMatchers("/esqueci-senha", "/recuperar-senha").permitAll()
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers("/turmas/**").hasRole("ADMIN")
+                        .requestMatchers("/relatorios/**").hasRole("ADMIN")
+                        .requestMatchers("/vinculo-aluno-turma/**").hasRole("ADMIN")
+                        .requestMatchers("/projetos/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login

@@ -2,91 +2,257 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Impressão de Autorizações</title>
+  <title>Impressão de Autorizações - Instituto Mário Gazin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
-    body {
-        font-family: 'Arial', sans-serif;
-        margin: 0;
-        padding: 20px;
-    }
-    .autorizacao-container {
-        border: 1px dashed #000;
-        padding: 30px;
-        margin-bottom: 40px;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    h2 { text-align: center; text-transform: uppercase; margin-bottom: 30px; }
-    .campo { margin-bottom: 15px; line-height: 1.6; }
-    .destaque { font-weight: bold; }
-    .assinatura {
-        margin-top: 60px;
-        border-top: 1px solid #000;
-        width: 60%;
-        margin-left: auto;
-        margin-right: auto;
-        text-align: center;
-        padding-top: 10px;
+    :root {
+      --primary-color: #003366;
+      --border-color: #000;
     }
 
-    /* Configuração para impressão: Quebra de página após cada aluno */
+    body {
+        font-family: 'Open Sans', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        color: #000;
+    }
+
+    /* Área de controle (Botão de Imprimir) */
+    .no-print-bar {
+        background: #333;
+        color: white;
+        text-align: center;
+        padding: 15px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .btn-print {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-print:hover { background-color: #218838; }
+
+    .btn-back {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        margin-right: 10px;
+    }
+    .page-container {
+        background: white;
+        width: 210mm;
+        min-height: 297mm;
+        margin: 20px auto;
+        padding: 20mm;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        box-sizing: border-box;
+        position: relative;
+        page-break-after: always;
+    }
+
+    /* Cabeçalho */
+    .header {
+        text-align: center;
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 15px;
+        margin-bottom: 30px;
+    }
+    .header h1 {
+        margin: 0;
+        color: var(--primary-color);
+        font-size: 24px;
+        text-transform: uppercase;
+    }
+    .header p {
+        margin: 5px 0 0;
+        font-size: 12px;
+        color: #555;
+    }
+
+    /* Título do Documento */
+    .doc-title {
+        text-align: center;
+        text-transform: uppercase;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 30px;
+        text-decoration: underline;
+    }
+
+    /* Corpo do Texto */
+    .content-text {
+        font-size: 14px;
+        line-height: 1.6;
+        text-align: justify;
+        margin-bottom: 20px;
+    }
+    .highlight {
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    /* Caixa de Detalhes do Evento */
+    .event-box {
+        border: 1px solid #000;
+        padding: 15px;
+        margin: 20px 0;
+        font-size: 14px;
+    }
+    .event-row {
+        display: flex;
+        margin-bottom: 8px;
+    }
+    .event-label {
+        font-weight: bold;
+        width: 140px;
+        flex-shrink: 0;
+    }
+
+    /* Assinatura */
+    .signature-section {
+        margin-top: 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    .date-place {
+        text-align: left;
+    }
+    .signature-line {
+        border-top: 1px solid #000;
+        width: 300px;
+        text-align: center;
+        padding-top: 5px;
+        font-size: 12px;
+    }
+
+    /* Rodapé */
+    .footer {
+        position: absolute;
+        bottom: 20mm;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 10px;
+        color: #777;
+    }
+
+    /* CSS Específico para Impressão */
     @media print {
-        .page-break { page-break-after: always; }
-        body { padding: 0; margin: 0; }
-        .autorizacao-container { border: none; margin: 0; padding: 40px; height: 90vh; }
-        /* Ocultar botão de imprimir na hora da impressão */
-        .no-print { display: none; }
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            background: white;
+            -webkit-print-color-adjust: exact;
+        }
+        .no-print-bar { display: none !important; }
+        .page-container {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            border: none;
+            box-shadow: none;
+            page-break-after: always;
+        }
+        .event-box { break-inside: avoid; }
     }
   </style>
 </head>
 <body>
 
-<div class="no-print" style="text-align: center; padding: 20px; background: #f0f0f0; margin-bottom: 20px;">
-  <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
-    🖨️ Imprimir Agora / Salvar como PDF
-  </button>
+<div class="no-print-bar">
+  <a href="/autorizacoes/nova" class="btn-back">⬅ Voltar</a>
+  <button onclick="window.print()" class="btn-print">🖨️ Imprimir / Salvar PDF</button>
 </div>
 
-<div th:each="aluno : ${alunos}">
+<div th:each="aluno : ${alunos}" class="page-container">
 
-  <div class="autorizacao-container">
-    <h2>Autorização de Saída Pedagógica</h2>
-
-    <p class="campo">
-      Eu, responsável legal pelo(a) aluno(a) <span class="destaque" th:text="${aluno.usuario.nome}">Nome do Aluno</span>,
-      matriculado na turma <span class="destaque" th:text="${aluno.turma.nome}">Turma</span>,
-      autorizo a sua participação no evento descrito abaixo:
-    </p>
-
-    <div style="background-color: #f9f9f9; padding: 15px; border: 1px solid #ddd; margin: 20px 0;">
-      <p><strong>Evento:</strong> <span th:text="${dados.tituloEvento}"></span></p>
-      <p><strong>Local:</strong> <span th:text="${dados.local}"></span></p>
-      <p><strong>Data:</strong> <span th:text="${#temporals.format(dados.dataEvento, 'dd/MM/yyyy')}"></span></p>
-      <p>
-        <strong>Horário de Saída:</strong> <span th:text="${dados.horarioSaida}"></span> |
-        <strong>Horário de Retorno (previsto):</strong> <span th:text="${dados.horarioRetorno}"></span>
-      </p>
-      <p th:if="${!#strings.isEmpty(dados.descricao)}">
-        <strong>Observações:</strong> <span th:text="${dados.descricao}"></span>
-      </p>
-    </div>
-
-    <p class="campo">
-      Estou ciente das normas da instituição e das responsabilidades do aluno durante o evento.
-    </p>
-
-    <div class="assinatura">
-      Assinatura do Responsável<br>
-      <small th:if="${aluno.responsavel != null}" th:text="'(' + ${aluno.responsavel.nome} + ')'"></small>
-    </div>
-
-    <p style="text-align: center; margin-top: 40px; font-size: 12px; color: #666;">
-      Instituto Mário Gazin - Sistema de Gestão Escolar
-    </p>
+  <div class="header">
+    <h1>Instituto Mário Gazin</h1>
+    <p>Educação e Cidadania para um futuro melhor</p>
   </div>
 
-  <div class="page-break"></div>
+  <div class="doc-title">Autorização de Saída Pedagógica</div>
+
+  <div class="content-text">
+    Eu, responsável legal pelo(a) aluno(a) <span class="highlight" th:text="${aluno.usuario.nome}">NOME DO ALUNO</span>,
+    regularmente matriculado(a) na turma <span class="highlight" th:text="${turmaNome}">TURMA X</span>,
+    autorizo a sua participação na atividade extracurricular descrita abaixo:
+  </div>
+
+  <div class="event-box">
+    <div class="event-row">
+      <div class="event-label">Evento:</div>
+      <div th:text="${dados.tituloEvento}">Visita Técnica</div>
+    </div>
+    <div class="event-row">
+      <div class="event-label">Local:</div>
+      <div th:text="${dados.local}">Museu Histórico</div>
+    </div>
+    <div class="event-row">
+      <div class="event-label">Data:</div>
+      <div th:text="${#temporals.format(dados.dataEvento, 'dd/MM/yyyy')}">25/12/2025</div>
+    </div>
+    <div class="event-row">
+      <div class="event-label">Horários:</div>
+      <div>
+        Saída: <strong th:text="${dados.horarioSaida}">08:00</strong> |
+        Retorno Previsto: <strong th:text="${dados.horarioRetorno}">12:00</strong>
+      </div>
+    </div>
+    <div class="event-row" th:if="${!#strings.isEmpty(dados.descricao)}">
+      <div class="event-label">Observações:</div>
+      <div th:text="${dados.descricao}">Trazer garrafa de água.</div>
+    </div>
+  </div>
+
+  <div class="content-text">
+    Declaro estar ciente de que o transporte e a supervisão serão de responsabilidade da instituição durante o período informado,
+    e comprometo-me a orientar o aluno sobre o cumprimento das normas de conduta durante o passeio.
+  </div>
+
+  <br><br>
+
+  <div class="signature-section">
+    <div class="date-place">
+      <br>
+      _____________________, ____/____/______<br>
+      <small>Local e Data</small>
+    </div>
+
+    <div class="signature-line">
+      ___________________________________________<br>
+      <strong>Assinatura do Responsável</strong><br>
+      <small th:if="${aluno.responsavel != null}" th:text="${aluno.responsavel.nome}"></small>
+      <small th:if="${aluno.responsavel == null}">(Nome Legível)</small>
+    </div>
+  </div>
+
+  <div class="footer">
+    Instituto Mário Gazin • Sistema de Gestão Escolar • Documento gerado eletronicamente
+  </div>
+
 </div>
 
 </body>
