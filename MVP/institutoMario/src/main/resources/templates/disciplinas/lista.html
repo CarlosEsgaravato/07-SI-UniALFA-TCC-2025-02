@@ -10,7 +10,6 @@
 
 <div class="main-content" id="main-content">
     <div class="d-flex justify-content-between align-items-center mb-4">
-
         <button class="btn btn-primary d-block d-lg-none me-3" id="menu-open-toggle">
             <i class="bi bi-list"></i>
         </button>
@@ -19,7 +18,17 @@
         <a class="btn btn-primary" th:href="@{/disciplinas/nova}" sec:authorize="hasRole('ADMIN')">+ Nova Disciplina</a>
     </div>
 
-    <!-- Caixa de Pesquisa -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     <div class="card mb-3">
         <div class="card-body">
             <div class="row align-items-center">
