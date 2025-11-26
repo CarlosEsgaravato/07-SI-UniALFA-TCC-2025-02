@@ -41,7 +41,6 @@ class MyApp extends StatelessWidget {
 
         Provider<OcrService>(
           create: (_) => OcrService(),
-          dispose: (_, ocrService) => ocrService.dispose(), // Limpar recursos quando não precisar mais
         ),
         Provider<ProfessorService>(
           create: (context) => ProfessorService(context.read<ApiService>()),
