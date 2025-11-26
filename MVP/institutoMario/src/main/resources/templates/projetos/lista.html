@@ -58,12 +58,25 @@
 
                     <div class="mt-auto d-flex justify-content-end gap-2 flex-wrap">
 
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                th:if="${not #lists.isEmpty(projeto.documentos)}"
+                                data-bs-toggle="modal"
+                                th:attr="data-bs-target='#documentosModal' + ${projeto.id}">
+                            <i class="bi bi-file-earmark-text-fill"></i> Documentos
+                        </button>
+
                         <a th:href="@{'/vinculo-projeto-turma/projeto/' + ${projeto.id}}" class="btn btn-sm btn-info text-white">
                             <i class="bi bi-diagram-3-fill"></i> Turmas
                         </a>
 
                         <a th:href="@{'/projetos/editar/' + ${projeto.id}}" class="btn btn-sm btn-warning">
                             <i class="bi bi-pencil-fill"></i> Editar
+                        </a>
+
+                        <a th:href="@{'/projetos/deletar/' + ${projeto.id}}"
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('Tem certeza que deseja excluir este projeto?');">
+                            <i class="bi bi-trash-fill"></i> Excluir
                         </a>
                     </div>
                 </div>
