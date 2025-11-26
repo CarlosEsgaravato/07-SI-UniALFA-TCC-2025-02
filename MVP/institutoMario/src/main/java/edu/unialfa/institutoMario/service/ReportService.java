@@ -41,36 +41,25 @@ import java.util.List;
 @Service
 public class ReportService {
 
-    /**
-     * Adiciona o cabeçalho com logo e título ao documento PDF
-     */
+
     private void adicionarCabecalhoPDF(Document document, String titulo) {
         try {
-            // Carrega a logo do diretório static/images
             ClassPathResource imgFile = new ClassPathResource("static/images/logo2.png");
             InputStream inputStream = imgFile.getInputStream();
             byte[] imageBytes = inputStream.readAllBytes();
 
             ImageData imageData = ImageDataFactory.create(imageBytes);
             Image logo = new Image(imageData);
-
-            // Ajusta o tamanho da logo
             logo.scaleToFit(100, 50);
             logo.setHorizontalAlignment(HorizontalAlignment.CENTER);
             logo.setMarginBottom(10);
-
-            // Adiciona a logo
             document.add(logo);
-
-            // Adiciona o título
             Paragraph tituloRelatorio = new Paragraph(titulo)
                     .setBold()
                     .setFontSize(18)
                     .setTextAlignment(TextAlignment.CENTER)
                     .setMarginBottom(5);
             document.add(tituloRelatorio);
-
-            // Adiciona subtítulo com nome da instituição
             Paragraph subtitulo = new Paragraph("Instituto Mário Gazin")
                     .setFontSize(12)
                     .setTextAlignment(TextAlignment.CENTER)
@@ -79,7 +68,6 @@ public class ReportService {
             document.add(subtitulo);
 
         } catch (Exception e) {
-            // Se não conseguir carregar a logo, apenas adiciona o título
             System.err.println("Erro ao carregar logo: " + e.getMessage());
             Paragraph tituloRelatorio = new Paragraph(titulo)
                     .setBold()
@@ -146,7 +134,6 @@ public class ReportService {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            // Adiciona cabeçalho com logo
             adicionarCabecalhoPDF(document, "Relatório de Alunos por Turma");
 
             float[] columnWidths = {4, 4, 3, 3};
@@ -215,8 +202,6 @@ public class ReportService {
         try (PdfWriter writer = new PdfWriter(response.getOutputStream());
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
-
-            // Adiciona cabeçalho com logo
             adicionarCabecalhoPDF(document, "Relatório de Disciplinas por Turma");
 
             float[] columnWidths = {4, 3, 3};
@@ -290,7 +275,6 @@ public class ReportService {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            // Adiciona cabeçalho com logo
             adicionarCabecalhoPDF(document, "Relatório de Eventos por Período");
 
             float[] columnWidths = {3, 2, 2, 2};
@@ -369,7 +353,6 @@ public class ReportService {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            // Adiciona cabeçalho com logo
             adicionarCabecalhoPDF(document, "Relatório de Provas por Disciplina");
 
             float[] columnWidths = {3, 2, 3, 3};
@@ -457,10 +440,8 @@ public class ReportService {
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            // Adiciona cabeçalho com logo
             adicionarCabecalhoPDF(document, "Relatório de Notas por Aluno");
 
-            // Adiciona nome do aluno
             document.add(new Paragraph("Aluno: " + alunoNome)
                     .setFontSize(12)
                     .setBold()

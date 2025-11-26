@@ -32,6 +32,17 @@ services:
     volumes:
       - uploads_data:/app/uploads
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: img-phpmyadmin
+    restart: always
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
 
 volumes:
   mysql-data:

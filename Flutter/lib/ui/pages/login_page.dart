@@ -127,16 +127,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
 
-              TextButton(
-                onPressed: () {
-                  MsgAlerta.show(
-                    context: context,
-                    titulo: 'Esqueceu a Senha?',
-                    texto: 'Entre em contato com o suporte para recuperar sua senha.',
-                  );
-                },
-                child: const Text('Esqueceu sua senha?'),
-              ),
             ],
           ),
         ),

@@ -50,7 +50,7 @@ public class RespostaAlunoService {
 
 
         for (RespostaSimplesDTO respostaDto : request.getRespostas()) {
-            String numeroQuestaoStr = respostaDto.getNumeroQuestao(); // DTO envia String
+            String numeroQuestaoStr = respostaDto.getNumeroQuestao();
 
             RespostaAluno respostaAluno = new RespostaAluno();
             respostaAluno.setAluno(alunoEntity);

@@ -7,7 +7,7 @@ class ApiService {
 
   static final String _baseUrl = kIsWeb
       ? 'http://localhost:8080/api'
-      : 'http://192.168.0.110:8080/api';
+      : 'http://192.168.0.105:8080/api';
 
   final AuthService _authService;
 

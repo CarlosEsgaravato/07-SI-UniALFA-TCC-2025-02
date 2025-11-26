@@ -21,23 +21,16 @@ public class PasswordRecoveryService {
     private final JavaMailSender mailSender;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Gera token de recuperação e envia e-mail
-     * @param email E-mail do usuário
-     * @param baseUrl URL base da aplicação (ex: http://localhost:8080)
-     * @return true se e-mail foi encontrado e enviado, false caso contrário
-     */
     @Transactional
     public boolean solicitarRecuperacaoSenha(String email, String baseUrl) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
 
         if (usuarioOpt.isEmpty()) {
-            return false; // E-mail não encontrado
+            return false;
         }
 
         Usuario usuario = usuarioOpt.get();
 
-        // Gera token único
         String token = UUID.randomUUID().toString();
 
         // Define token e expiração (1 hora)
@@ -46,15 +39,11 @@ public class PasswordRecoveryService {
 
         usuarioRepository.save(usuario);
 
-        // Envia e-mail
         enviarEmailRecuperacao(usuario.getEmail(), usuario.getNome(), token, baseUrl);
 
         return true;
     }
 
-    /**
-     * Envia e-mail com link de recuperação
-     */
     private void enviarEmailRecuperacao(String email, String nome, String token, String baseUrl) {
         String linkRecuperacao = baseUrl + "/recuperar-senha?token=" + token;
 
@@ -96,9 +85,8 @@ public class PasswordRecoveryService {
 
         Usuario usuario = usuarioOpt.get();
 
-        // Verifica se token expirou
         if (usuario.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
-            return Optional.empty(); // Token expirado
+            return Optional.empty();
         }
 
         return Optional.of(usuario);
@@ -115,7 +103,6 @@ public class PasswordRecoveryService {
 
         Usuario usuario = usuarioOpt.get();
 
-        // Atualiza senha
         usuario.setSenha(passwordEncoder.encode(novaSenha));
 
         // Limpa token (impede reutilização)

@@ -14,7 +14,7 @@ import java.util.List;
 public class TurmaService {
 
     private final TurmaRepository turmaRepository;
-    private final AlunoService alunoService; // INJEÇÃO ADICIONADA AQUI
+    private final AlunoService alunoService;
 
     public List<Turma> listarTodas() {
         return turmaRepository.findAll();

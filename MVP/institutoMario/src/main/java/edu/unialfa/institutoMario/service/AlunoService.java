@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor // Mantido para não quebrar a injeção noutros lugares
+@AllArgsConstructor
 public class AlunoService {
 
     private final AlunoRepository repository;
@@ -45,23 +45,18 @@ public class AlunoService {
                 .ifPresent(repository::delete);
     }
 
-    // --- MÉTODOS ADAPTADOS PARA A NOVA LÓGICA DE LISTA ---
-
     public List<Aluno> listarAlunosSemTurma() {
-        // Filtra no Java: Alunos cuja lista de turmas está vazia
         return repository.findAll().stream()
                 .filter(a -> a.getTurmas().isEmpty())
                 .collect(Collectors.toList());
     }
 
     public List<Aluno> listarPorTurma(Turma turma) {
-        // Filtra no Java: Alunos cuja lista de turmas contém a turma X
         return repository.findAll().stream()
                 .filter(a -> a.getTurmas().contains(turma))
                 .collect(Collectors.toList());
     }
 
-    // Método de compatibilidade (Pega a primeira turma da lista, se houver)
     public Optional<Turma> buscarTurmaDoAluno(Long alunoId) {
         return repository.findById(alunoId)
                 .map(aluno -> {
@@ -72,7 +67,6 @@ public class AlunoService {
                 });
     }
 
-    // Outros métodos que não dependem de turma mantêm-se iguais...
     public Aluno buscarPorUsuario(Usuario usuario) {
         return repository.findByUsuario(usuario)
                 .orElseThrow(() -> new RuntimeException("Aluno não encontrado para o usuário logado"));
@@ -86,7 +80,6 @@ public class AlunoService {
         return repository.findByUsuarioId(usuarioId).orElse(null);
     }
 
-    // Se houver um método listarAlunosPorTurmaId antigo, usamos a lógica nova:
     public List<Aluno> listarAlunosPorTurmaId(Long turmaId) {
         if (turmaId == null || turmaId == 0) return java.util.Collections.emptyList();
 

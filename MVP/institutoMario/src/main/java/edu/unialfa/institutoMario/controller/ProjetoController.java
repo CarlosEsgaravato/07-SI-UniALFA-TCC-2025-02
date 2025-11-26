@@ -97,7 +97,6 @@ public class ProjetoController {
             }
         }
 
-        // --- (O código de upload de arquivos permanece igual) ---
         for (MultipartFile file : documentosFiles) {
             if (file != null && !file.isEmpty()) {
                 try {

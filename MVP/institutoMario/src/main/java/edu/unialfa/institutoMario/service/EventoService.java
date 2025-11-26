@@ -15,7 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 public class EventoService {
 
-    // Injeção via construtor (@AllArgsConstructor)
     private final EventoRepository repository;
 
     @Transactional
@@ -55,7 +54,6 @@ public class EventoService {
     }
 
     public List<Evento> listarEventosPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
-        // Converte LocalDate para LocalDateTime (início do dia e fim do dia)
         LocalDateTime dataHoraInicio = dataInicio.atStartOfDay();
         LocalDateTime dataHoraFim = dataFim.atTime(23, 59, 59);
 

@@ -176,20 +176,15 @@ public class PdfService {
         tituloCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         mainWrapper.addCell(tituloCell);
 
-        // --- TABELA DO GABARITO (AJUSTE PARA FICAR MENOR) ---
         PdfPTable gabaritoTable = new PdfPTable(6);
 
-        // TRUQUE: Usar largura TRAVADA (Locked) em pontos, não porcentagem.
-        // 120f equivale a mais ou menos 4,2 cm de largura total. Bem compacto.
         gabaritoTable.setTotalWidth(120f);
         gabaritoTable.setLockedWidth(true);
 
         gabaritoTable.setHorizontalAlignment(Element.ALIGN_CENTER);
 
-        // Ajuste das colunas: A coluna 'Q' levemente maior (1.4) que as letras (1.0)
         gabaritoTable.setWidths(new float[]{1.4f, 1f, 1f, 1f, 1f, 1f});
 
-        // Altura fixa pequena (14f) para combinar com a largura estreita
         float alturaCelula = 14f;
 
         String[] headers = {"Q", "A", "B", "C", "D", "E"};
@@ -197,7 +192,7 @@ public class PdfService {
             PdfPCell headerCell = new PdfPCell(new Phrase(header, F_GAB_LETRA));
             headerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             headerCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            headerCell.setBackgroundColor(Color.LIGHT_GRAY); // Fundo cinza claro para destaque
+            headerCell.setBackgroundColor(Color.LIGHT_GRAY);
             headerCell.setBorder(Rectangle.BOX);
             headerCell.setBorderWidth(0.5f);
             headerCell.setFixedHeight(alturaCelula);
@@ -205,7 +200,6 @@ public class PdfService {
         }
 
         for (Questao questao : questoes) {
-            // Número da Questão
             PdfPCell numCell = new PdfPCell(new Phrase(questao.getNumero(), F_GAB_NUMERO));
             numCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             numCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
@@ -214,14 +208,12 @@ public class PdfService {
             numCell.setFixedHeight(alturaCelula);
             gabaritoTable.addCell(numCell);
 
-            // Bolinhas
             for (int i = 0; i < 5; i++) {
                 PdfPCell circleCell = new PdfPCell();
                 circleCell.setBorder(Rectangle.BOX);
                 circleCell.setBorderWidth(0.5f);
                 circleCell.setFixedHeight(alturaCelula);
 
-                // Raio 3.0f porque a célula agora é bem pequena (14f de altura)
                 circleCell.setCellEvent(new CircleEvent(3.0f));
                 gabaritoTable.addCell(circleCell);
             }
@@ -235,7 +227,6 @@ public class PdfService {
         return mainWrapper;
     }
 
-    // Classe atualizada para centralizar automaticamente baseado na altura da célula
     private static class CircleEvent implements PdfPCellEvent {
         private final float radius;
 
@@ -250,7 +241,6 @@ public class PdfService {
                 canvas.setColorStroke(Color.BLACK);
                 canvas.setLineWidth(0.6f);
 
-                // Calcula o centro exato da célula (X e Y)
                 float centerX = position.getLeft() + (position.getWidth() / 2);
                 float centerY = position.getTop() - (position.getHeight() / 2);
 

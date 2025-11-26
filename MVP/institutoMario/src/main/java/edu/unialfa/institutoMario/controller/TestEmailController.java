@@ -13,10 +13,6 @@ public class TestEmailController {
 
     private final JavaMailSender mailSender;
 
-    /**
-     * Endpoint para testar envio de e-mail
-     * Acesse: http://localhost:8080/test-email?destino=seuemail@gmail.com
-     */
     @GetMapping("/test-email")
     public String testarEmail(@RequestParam String destino) {
         try {

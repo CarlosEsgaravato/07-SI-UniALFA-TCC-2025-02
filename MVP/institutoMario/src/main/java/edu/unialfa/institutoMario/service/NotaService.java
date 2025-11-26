@@ -58,7 +58,6 @@ public class NotaService {
             return "—";
         }
 
-        // 3. Calcular a média de todas as notasFinais
         BigDecimal somaTotal = notasFinais.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal count = BigDecimal.valueOf(notasFinais.size());
 
@@ -71,7 +70,6 @@ public class NotaService {
     public Map<String, String> calcularMediaPorTurma() {
         List<RespostaAluno> todasRespostas = respostaAlunoRepository.findAll();
 
-        // 1. Calcular a nota de cada aluno em cada prova (Mesma lógica do método anterior)
         Map<Prova, Map<Aluno, BigDecimal>> notasPorProvaAluno = todasRespostas.stream()
                 .collect(Collectors.groupingBy(RespostaAluno::getProva))
                 .entrySet().stream()
@@ -95,7 +93,6 @@ public class NotaService {
                 ));
 
 
-        // 2. Mapear cada Nota (BigDecimal) para o nome da Turma
         Map<String, List<BigDecimal>> notasAgrupadasPorTurma = new HashMap<>();
 
         for (Map.Entry<Prova, Map<Aluno, BigDecimal>> provaEntry : notasPorProvaAluno.entrySet()) {

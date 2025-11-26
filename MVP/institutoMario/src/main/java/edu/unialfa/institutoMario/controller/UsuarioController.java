@@ -50,7 +50,6 @@ public class UsuarioController {
     @PostMapping
     public String salvar(Usuario usuario,
                          Model model,
-                         // Recebemos os dados do Responsável separadamente
                          @RequestParam(required = false) Long respId,
                          @RequestParam(required = false) String respNome,
                          @RequestParam(required = false) String respCpf,
@@ -63,7 +62,6 @@ public class UsuarioController {
         String erroResponsavel = "";
         Long tipoId = usuario.getTipoUsuario().getId();
 
-        // Validação manual usando as novas variáveis
         if (tipoId == 3) { // Aluno
             if (respNome == null || respNome.isEmpty()) erroResponsavel += "Nome do responsável é obrigatório. ";
             if (respCpf == null || respCpf.isEmpty()) erroResponsavel += "CPF do responsável é obrigatório. ";
@@ -80,7 +78,7 @@ public class UsuarioController {
             model.addAttribute("erroGeral", mensagemErro.trim());
             model.addAttribute("tipos", tipoUsuarioService.listarTodos());
 
-            // Recriamos o objeto Responsavel para devolver ao formulário em caso de erro
+
             Responsavel respTemp = new Responsavel();
             respTemp.setId(respId);
             respTemp.setNome(respNome);
@@ -115,34 +113,24 @@ public class UsuarioController {
                     aluno.setUsuario(usuario);
                 }
 
-                // === LÓGICA MANUAL DO RESPONSÁVEL ===
                 Responsavel responsavelParaSalvar;
 
                 if (aluno.getResponsavel() != null) {
-                    // Caso A: Já tem responsável vinculado -> Atualiza o existente
                     responsavelParaSalvar = aluno.getResponsavel();
                 } else if (respId != null) {
-                    // Caso B: Trazido do form por ID -> Busca no banco
                     responsavelParaSalvar = responsavelRepository.findById(respId).orElse(new Responsavel());
                 } else {
-                    // Caso C: Novo
                     responsavelParaSalvar = new Responsavel();
                 }
-
-                // Preenchemos com os dados que vieram das variáveis @RequestParam
                 responsavelParaSalvar.setNome(respNome);
                 responsavelParaSalvar.setCpf(respCpf);
                 responsavelParaSalvar.setTelefone(respTelefone);
                 responsavelParaSalvar.setEmail(respEmail);
-
-                // Salva
                 Responsavel responsavelSalvo = responsavelRepository.save(responsavelParaSalvar);
-
-                // Vincula
                 aluno.setResponsavel(responsavelSalvo);
                 alunoService.salvar(aluno);
 
-            } else { // Outros
+            } else {
                 alunoService.deletarPorUsuarioId(usuario.getId());
                 professorService.deletarPorUsuarioId(usuario.getId());
             }
@@ -150,8 +138,6 @@ public class UsuarioController {
         } catch (Exception e) {
             model.addAttribute("erroGeral", "Erro interno: " + e.getMessage());
             model.addAttribute("tipos", tipoUsuarioService.listarTodos());
-
-            // Devolve os dados em caso de erro (catch)
             Responsavel respTemp = new Responsavel();
             respTemp.setNome(respNome);
             respTemp.setCpf(respCpf);

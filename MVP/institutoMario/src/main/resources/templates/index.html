@@ -167,7 +167,9 @@
                                 </div>
                                 <ul class="list-group list-group-flush" th:if="${!#lists.isEmpty(mediaNotasPorTurma)}">
                                     <li class="list-group-item d-flex justify-content-between align-items-center"
-                                        th:each="entry : ${mediaNotasPorTurma}">
+                                        th:each="entry : ${mediaNotasPorTurma}"
+                                        th:if="${entry.key != 'Turma Não Definida'}">
+
                                         <div th:text="${entry.key}">Turma A</div>
                                         <div class="fw-semibold text-primary" th:text="${entry.value}">7.8</div>
                                     </li>

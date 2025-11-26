@@ -150,7 +150,6 @@ public class RelatorioController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
             Model model
     ) {
-        // Validação do período no backend
         if (dataInicio != null && dataFim != null) {
             long diferencaDias = ChronoUnit.DAYS.between(dataInicio, dataFim);
 
@@ -276,16 +275,11 @@ public class RelatorioController {
         return "relatorios/notas-por-aluno";
     }
 
-    /**
-     * Endpoint REST para buscar alunos de uma turma via AJAX
-     * Retorna JSON com lista de alunos
-     */
     @GetMapping("/api/alunos-por-turma/{turmaId}")
     @ResponseBody
     public List<Map<String, Object>> buscarAlunosPorTurma(@PathVariable Long turmaId) {
         List<Aluno> alunos = alunoService.listarAlunosPorTurmaId(turmaId);
 
-        // Retorna apenas id e nome dos alunos
         return alunos.stream()
                 .map(aluno -> {
                     Map<String, Object> alunoMap = new HashMap<>();

@@ -15,13 +15,11 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Service
-// @AllArgsConstructor <--- REMOVER ESTA ANOTAÇÃO
 public class ProjetoService {
 
     private final ProjetoRepository projetoRepository;
     private final DocumentoRepository documentoRepository;
 
-    // CONSTRUTOR EXPLÍCITO: Garante que o Spring injetará as dependências corretamente
     public ProjetoService(ProjetoRepository projetoRepository, DocumentoRepository documentoRepository) {
         this.projetoRepository = projetoRepository;
         this.documentoRepository = documentoRepository;

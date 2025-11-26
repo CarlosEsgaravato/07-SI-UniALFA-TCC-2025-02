@@ -48,7 +48,7 @@ public class AutorizacaoController {
         }
 
         model.addAttribute("alunos", alunos);
-        model.addAttribute("turmaNome", turma.getNome()); // Passamos o nome da turma direto
+        model.addAttribute("turmaNome", turma.getNome());
         model.addAttribute("dados", dados);
 
         return "relatorios/impressao-autorizacao";

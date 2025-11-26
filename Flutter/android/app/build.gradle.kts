@@ -7,16 +7,22 @@ plugins {
 
 android {
     namespace = "com.example.hackathonflutter"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+
+    // ALTERAÇÃO 1: Definindo SDK 36 explicitamente conforme exigido pelos plugins de câmera
+    compileSdk = 36
+
+    // ALTERAÇÃO 2: Definindo a versão exata do NDK exigida pelos plugins ML Kit
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        // ALTERAÇÃO 3: Atualizando para Java 17 para alinhar com o SDK 36 e resolver conflitos
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        // ALTERAÇÃO 3: Alinhando o Kotlin também para a versão 17
+        jvmTarget = "17"
     }
 
     defaultConfig {

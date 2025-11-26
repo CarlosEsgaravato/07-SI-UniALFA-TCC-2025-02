@@ -25,16 +25,10 @@ public class VinculoAlunoTurmaController {
         Turma turma = turmaService.buscarPorId(id);
 
         List<Aluno> todosAlunos = alunoService.listarTodos();
-
-        // Filtra: Alunos que AINDA NÃO estão nesta turma específica
         List<Aluno> alunosDisponiveis = todosAlunos.stream()
                 .filter(a -> !a.getTurmas().contains(turma))
                 .collect(Collectors.toList());
-
-        // Alunos JÁ vinculados a esta turma
-        // Podemos pegar direto da entidade Turma agora que é ManyToMany
         List<Aluno> alunosVinculados = turma.getAlunos();
-
         model.addAttribute("turma", turma);
         model.addAttribute("alunosDisponiveis", alunosDisponiveis);
         model.addAttribute("alunosVinculados", alunosVinculados);
@@ -47,8 +41,6 @@ public class VinculoAlunoTurmaController {
     public String vincularAluno(@RequestParam Long alunoId, @RequestParam Long turmaId) {
         Aluno aluno = alunoService.buscarPorId(alunoId);
         Turma turma = turmaService.buscarPorId(turmaId);
-
-        // Adiciona na lista se ainda não existir
         if (!aluno.getTurmas().contains(turma)) {
             aluno.getTurmas().add(turma);
             alunoService.salvar(aluno);
@@ -61,8 +53,6 @@ public class VinculoAlunoTurmaController {
     public String desvincular(@RequestParam Long turmaId, @RequestParam Long alunoId) {
         Aluno aluno = alunoService.buscarPorId(alunoId);
         Turma turma = turmaService.buscarPorId(turmaId);
-
-        // Remove da lista
         aluno.getTurmas().remove(turma);
         alunoService.salvar(aluno);
 
